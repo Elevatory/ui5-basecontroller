@@ -1,13 +1,11 @@
 {
   "name": "@elevatory/ui5-basecontroller",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "UI5 Base Controller",
   "main": "./src/BaseController.ts",
   "module": "./src/BaseController.ts",
   "files": [
-    "./src/BaseController.ts",
-    "./src/BaseController.js",
-    "./src/BaseController.d.ts"
+    "src/"
   ],
   "exports": {
     ".": "./src/BaseController.js"
