@@ -27,7 +27,7 @@
   },
   "homepage": "https://gitlab.com/e4203/ui5-basecontroller#readme",
   "publishConfig": {
-    "@elevatory:registry": "https://gitlab.com/groups/e4203/-/packages/npm"
+    "@elevatory:registry": "https://gitlab.com/api/v4/projects/34859136/packages/npm/"
   },
   "devDependencies": {
     "@types/node": "^17.0.23",
