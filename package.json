@@ -11,9 +11,6 @@
     ".": "./src/BaseController.js"
   },
   "types": "./src/BaseController.ts",
-  "scripts": {
-    "postinstall": "node ./src/postinstall.js"
-  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@gitlab.com/e4203/ui5-basecontroller.git"
