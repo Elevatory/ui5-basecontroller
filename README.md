@@ -7,6 +7,5 @@ We specialize in the development of SAP applications with ABAP, SAPUI5/Fiori and
 Copy this class into your SAPUI5 TypeScript project and use it as a base class for your controllers.
 
 ## ToDos
-- [ ] enhance this README with detailed information on how to use the base controller with its specific functions
-- [ ] create npm module that can be easily installed into any SAPUI5 TypeScript project via `npm install`
-- [ ] use the new SAPUI5 types library
+- enhance this README with detailed information on how to use the base controller with its specific functions
+- use the new SAPUI5 types library

@@ -1,35 +1,34 @@
 {
   "name": "@elevatory/ui5-basecontroller",
-  "version": "1.0.5",
+  "version": "2.0.4",
   "description": "UI5 Base Controller",
-  "main": "./src/BaseController.ts",
-  "module": "./src/BaseController.ts",
+  "main": "./dist/BaseController.js",
+  "module": "./dist/BaseController.js",
+  "scripts": {
+    "deploy": "tsc && npm publish"
+  },
   "files": [
-    "src/"
+    "dist/"
   ],
   "exports": {
-    ".": "./src/BaseController.js"
+    ".": "./dist/BaseController.js"
   },
-  "types": "./src/BaseController.ts",
+  "types": "./dist/BaseController.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@gitlab.com/e4203/ui5-basecontroller.git"
+    "url": "git+ssh://git@gitlab.com/elevatory/ui5-basecontroller.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://gitlab.com/e4203/ui5-basecontroller/issues"
+    "url": "https://gitlab.com/elevatory/ui5-basecontroller/issues"
   },
-  "homepage": "https://gitlab.com/e4203/ui5-basecontroller#readme",
-  "publishConfig": {
-    "@elevatory:registry": "https://gitlab.com/api/v4/projects/34859136/packages/npm/"
+  "homepage": "https://gitlab.com/elevatory/ui5-basecontroller#readme",
+  "dependencies": {
+    "@types/openui5": "^1.100.0"
   },
   "devDependencies": {
     "@types/node": "^17.0.23",
-    "@types/openui5": "^1.100.0",
     "typescript": "^4.6.3"
-  },
-  "dependencies": {
-    "fs-extra": "^10.0.1"
   }
 }
