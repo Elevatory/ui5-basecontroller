@@ -1,20 +1,22 @@
-import Filter from "sap/ui/model/Filter";
-import Context from "sap/ui/model/Context";
-import Controller from "sap/ui/core/mvc/Controller";
-import ODataModel from "sap/ui/model/odata/v2/ODataModel";
-import JSONModel from "sap/ui/model/json/JSONModel";
-import ResourceModel from "sap/ui/model/resource/ResourceModel";
-import MessageBox, { Action } from "sap/m/MessageBox";
-import Component from "sap/ui/core/Component";
-import ResourceBundle from "sap/base/i18n/ResourceBundle";
-import Router from "sap/m/routing/Router";
+import Filter from 'sap/ui/model/Filter';
+import Context from 'sap/ui/model/Context';
+import Controller from 'sap/ui/core/mvc/Controller';
+import ODataModel from 'sap/ui/model/odata/v2/ODataModel';
+import JSONModel from 'sap/ui/model/json/JSONModel';
+import ResourceModel from 'sap/ui/model/resource/ResourceModel';
+import MessageBox, { Action } from 'sap/m/MessageBox';
+import Component from 'sap/ui/core/Component';
+import ResourceBundle from 'sap/base/i18n/ResourceBundle';
+import Router from 'sap/m/routing/Router';
+import { User } from './types';
 
 /**
  * @namespace UI5BaseController
  */
 
- export default class BaseController extends Controller {
+export default class BaseController extends Controller {
     private baseModel!: string;
+    private currentUser: User;
 
     constructor(model: string) {
         super('Base');
@@ -22,7 +24,7 @@ import Router from "sap/m/routing/Router";
     }
 
     public getODataModel(id: string = this.baseModel): ODataModel {
-        if (id === "") {
+        if (id === '') {
             return this.getComponent().getModel() as unknown as ODataModel;
         } else {
             return this.getComponent().getModel(id) as unknown as ODataModel;
@@ -34,7 +36,7 @@ import Router from "sap/m/routing/Router";
     }
 
     public getText(id: string): string {
-        const resourceBundle = (this.getComponent().getModel("i18n") as unknown as ResourceModel).getResourceBundle() as ResourceBundle;
+        const resourceBundle = (this.getComponent().getModel('i18n') as unknown as ResourceModel).getResourceBundle() as ResourceBundle;
         return resourceBundle.getText(id);
     }
 
@@ -51,7 +53,7 @@ import Router from "sap/m/routing/Router";
     }
 
     public getStateModel(): JSONModel {
-        return this.getJSONModel("state");
+        return this.getJSONModel('state');
     }
 
     public initialize(): void {
@@ -70,17 +72,17 @@ import Router from "sap/m/routing/Router";
         sap.ui.getCore().getMessageManager().removeAllMessages();
     }
 
-    public async confirm(textId = "confirmDelete", titleTextId?: string): Promise<boolean> {
+    public async confirm(textId = 'confirmDelete', titleTextId?: string): Promise<boolean> {
         return new Promise((resolve, _) => {
-          MessageBox.confirm(this.getText(textId), {
-            onClose: (closeAction: Action) => {
-              resolve(closeAction === Action.OK);
-            },
-            title: titleTextId ? this.getText(titleTextId!) : undefined,
-          });
+            MessageBox.confirm(this.getText(textId), {
+                onClose: (closeAction: Action) => {
+                    resolve(closeAction === Action.OK);
+                },
+                title: titleTextId ? this.getText(titleTextId!) : undefined
+            });
         });
-      }
-   
+    }
+
     public async remove(path: string, model = this.baseModel): Promise<void> {
         return new Promise((resolve, reject) => {
             const onCompleted = (event: any) => {
@@ -91,12 +93,12 @@ import Router from "sap/m/routing/Router";
                 } else {
                     resolve();
                 }
-            }
+            };
 
             const onFailed = (err: any) => {
                 this.getODataModel(model).detachRequestFailed(onFailed);
-                reject(err);                
-            }
+                reject(err);
+            };
 
             this.getODataModel(model).attachRequestCompleted(onCompleted);
             this.getODataModel(model).attachRequestFailed(onFailed);
@@ -122,14 +124,14 @@ import Router from "sap/m/routing/Router";
                 } else {
                     resolve();
                 }
-            }
+            };
 
             const onFailed = (err: any) => {
                 this.getODataModel(model).detachRequestFailed(onFailed);
                 this.getODataModel(model).setRefreshAfterChange(defaultRefreshBehavior);
 
                 reject(err);
-            }
+            };
 
             this.getODataModel(model).attachRequestCompleted(onCompleted);
             this.getODataModel(model).attachRequestFailed(onFailed);
@@ -161,16 +163,17 @@ import Router from "sap/m/routing/Router";
     }
 
     public async read<T>(entitySet: string, primaryKey: Object, model = this.baseModel): Promise<T> {
-        const pathWithKeys = entitySet + `(${Object.keys(primaryKey)
-            .map(key => {
-                const keyString = primaryKey[key as keyof Object] as unknown as string;
-                return typeof primaryKey[key as keyof Object] === 'number' ? `${key}=${encodeURIComponent(keyString)}` : `${key}='${encodeURIComponent(keyString)}'`
-            })
-            .join(',')
-            })`;
+        const pathWithKeys =
+            entitySet +
+            `(${Object.keys(primaryKey)
+                .map(key => {
+                    const keyString = primaryKey[key as keyof Object] as unknown as string;
+                    return typeof primaryKey[key as keyof Object] === 'number' ? `${key}=${encodeURIComponent(keyString)}` : `${key}='${encodeURIComponent(keyString)}'`;
+                })
+                .join(',')})`;
 
         return new Promise((resolve, reject) => {
-            this.getODataModel(model).read(pathWithKeys, {               
+            this.getODataModel(model).read(pathWithKeys, {
                 success: (oData: any) => {
                     resolve(oData.result || oData);
                 },
@@ -200,5 +203,14 @@ import Router from "sap/m/routing/Router";
 
     public isOnline(): boolean {
         return window.navigator.onLine;
+    }
+
+    public async getCurrentUser(): Promise<User> {
+        if (!this.currentUser) {
+            const response = await fetch('/sap/bc/ui2/start_up');
+            this.currentUser = await response.json();
+        }
+
+        return this.currentUser;
     }
 }
