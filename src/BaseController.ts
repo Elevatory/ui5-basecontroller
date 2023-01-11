@@ -334,6 +334,7 @@ export default class BaseController extends Controller {
 
     private polyfillPromiseAllSettled() {
         if (!Promise.allSettled) {
+            //@ts-ignore
             Promise.allSettled = function (promises) {
                 return Promise.all(
                     promises.map(promise =>
