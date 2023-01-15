@@ -54,7 +54,7 @@ export default class BaseController extends Controller {
     }
 
     public async quicksave(): Promise<void> {
-        await this.submit(this.baseModel);
+        await this.submit({ modelName: this.baseModel });
     }
 
     public clearMessageManager(): void {
@@ -95,24 +95,24 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async create<T>(path: string, properties: Object, model: string = this.baseModel): Promise<T> {
+    public async create<T>({ path, properties, modelName = this.baseModel }: { path: string, properties: Object, modelName?: string }): Promise<T> {
         return await new Promise((resolve, reject) => {
-            this.getODataModel(model).create(path, properties, {
+            this.getODataModel(modelName).create(path, properties, {
                 success: (oData: any) => {
                     resolve(oData);
                 },
-                error: () => {
-                    reject();
+                error: error => {
+                    reject(error);
                 }
             });
         });
     }
 
-    public createEntry(path: string, model: string = this.baseModel, properties: Object = {}): Context {
-        return this.getODataModel(model).createEntry(path, { properties }) as unknown as Context;
+    public createEntry({ path, modelName = this.baseModel, properties = {} }: { path: string, modelName?: string, properties?: Object }): Context {
+        return this.getODataModel(modelName).createEntry(path, { properties }) as unknown as Context;
     }
 
-    public async read<T>(entitySet: string, primaryKey: Object, model = this.baseModel): Promise<T> {
+    public async read<T>({ entitySet, primaryKey, modelName = this.baseModel }: { entitySet: string, primaryKey: Object, modelName?: string }): Promise<T> {
         const pathWithKeys =
             entitySet +
             `(${Object.keys(primaryKey)
@@ -123,20 +123,20 @@ export default class BaseController extends Controller {
                 .join(',')})`;
 
         return new Promise((resolve, reject) => {
-            this.getODataModel(model).read(pathWithKeys, {
+            this.getODataModel(modelName).read(pathWithKeys, {
                 success: (oData: any) => {
                     resolve(oData.result || oData);
                 },
-                error: (err: any) => {
-                    reject(err);
+                error: (error: any) => {
+                    reject(error);
                 }
             });
         });
     }
 
-    protected async update<T>(path, model, entity: T): Promise<void> {
+    protected async update<T>({ path, modelName = this.baseModel, entity }: { path: string, modelName?: string, entity: T }): Promise<void> {
         return await new Promise((resolve, reject) => {
-            this.getODataModel(model).update(path, entity as Object, {
+            this.getODataModel(modelName).update(path, entity as Object, {
                 success: () => {
                     resolve();
                 },
@@ -147,10 +147,10 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async remove(path: string, model = this.baseModel): Promise<void> {
+    public async remove({ path, modelName = this.baseModel }: { path: string, modelName?: string }): Promise<void> {
         return new Promise((resolve, reject) => {
             const onCompleted = (event: any) => {
-                this.getODataModel(model).detachRequestCompleted(onCompleted);
+                this.getODataModel(modelName).detachRequestCompleted(onCompleted);
 
                 if (event.getParameter('success') === false) {
                     reject();
@@ -160,17 +160,17 @@ export default class BaseController extends Controller {
             };
 
             const onFailed = (err: any) => {
-                this.getODataModel(model).detachRequestFailed(onFailed);
+                this.getODataModel(modelName).detachRequestFailed(onFailed);
                 reject(err);
             };
 
-            this.getODataModel(model).attachRequestCompleted(onCompleted);
-            this.getODataModel(model).attachRequestFailed(onFailed);
-            this.getODataModel(model).remove(path);
+            this.getODataModel(modelName).attachRequestCompleted(onCompleted);
+            this.getODataModel(modelName).attachRequestFailed(onFailed);
+            this.getODataModel(modelName).remove(path);
         });
     }
 
-    public async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: { entitySet: string; modelName: string; filters: Filter[]; urlParameters: Record<string, string> }): Promise<T> {
+    public async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: { entitySet: string; modelName?: string; filters: Filter[]; urlParameters: Record<string, string> }): Promise<T> {
         return await new Promise((resolve, reject) => {
             this.getODataModel(modelName).read(entitySet, {
                 success: (result: any) => {
@@ -185,18 +185,18 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async submit(model = this.baseModel, refresh = true): Promise<void> {
-        const defaultRefreshBehavior = this.getODataModel(model).getRefreshAfterChange();
-        this.getODataModel(model).setRefreshAfterChange(refresh);
+    public async submit({ modelName = this.baseModel, refresh = true }: { modelName?: string, refresh?: boolean }): Promise<void> {
+        const defaultRefreshBehavior = this.getODataModel(modelName).getRefreshAfterChange();
+        this.getODataModel(modelName).setRefreshAfterChange(refresh);
 
-        if (!this.getODataModel(model).hasPendingChanges(true)) {
+        if (!this.getODataModel(modelName).hasPendingChanges(true)) {
             return;
         }
 
         return new Promise((resolve, reject) => {
             const onCompleted = (event: any) => {
-                this.getODataModel(model).detachRequestCompleted(onCompleted);
-                this.getODataModel(model).setRefreshAfterChange(defaultRefreshBehavior);
+                this.getODataModel(modelName).detachRequestCompleted(onCompleted);
+                this.getODataModel(modelName).setRefreshAfterChange(defaultRefreshBehavior);
 
                 if (event.getParameter('success') === false) {
                     reject();
@@ -205,28 +205,28 @@ export default class BaseController extends Controller {
                 }
             };
 
-            const onFailed = (err: any) => {
-                this.getODataModel(model).detachRequestFailed(onFailed);
-                this.getODataModel(model).setRefreshAfterChange(defaultRefreshBehavior);
+            const onFailed = (error: any) => {
+                this.getODataModel(modelName).detachRequestFailed(onFailed);
+                this.getODataModel(modelName).setRefreshAfterChange(defaultRefreshBehavior);
 
-                reject(err);
+                reject(error);
             };
 
-            this.getODataModel(model).attachRequestCompleted(onCompleted);
-            this.getODataModel(model).attachRequestFailed(onFailed);
-            this.getODataModel(model).submitChanges();
+            this.getODataModel(modelName).attachRequestCompleted(onCompleted);
+            this.getODataModel(modelName).attachRequestFailed(onFailed);
+            this.getODataModel(modelName).submitChanges();
         });
     }
 
-    public async reset(model = this.baseModel): Promise<void> {
-        await this.getODataModel(model).resetChanges();
+    public async reset(modelName = this.baseModel): Promise<void> {
+        await this.getODataModel(modelName).resetChanges();
     }
 
-    public async callFunction<T>(name: string, urlParameters: Record<string, string | boolean | number | Date>, model, method = 'GET'): Promise<T> {
-        await Promise.allSettled([this.getODataModel(model).securityTokenAvailable()]);
+    public async callFunction<T>({ name, urlParameters, modelName, method = 'GET' }: { name: string, urlParameters: Record<string, string | boolean | number | Date>, modelName?: string, method?: string }): Promise<T> {
+        await Promise.allSettled([this.getODataModel(modelName).securityTokenAvailable()]);
 
         return await new Promise((resolve, reject) => {
-            this.getODataModel(model).callFunction(name, {
+            this.getODataModel(modelName).callFunction(name, {
                 method,
                 urlParameters: urlParameters as any,
                 success: (result: any) => {
@@ -239,14 +239,14 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async refreshToken(model: string): Promise<void> {
+    public async refreshToken(modelName = this.baseModel): Promise<void> {
         return await new Promise((resolve, reject) => {
-            this.getODataModel(model).refreshSecurityToken(
+            this.getODataModel(modelName).refreshSecurityToken(
                 () => {
                     resolve();
                 },
-                (err: any) => {
-                    reject(err);
+                (erro: any) => {
+                    reject(erro);
                 }
             );
         });
