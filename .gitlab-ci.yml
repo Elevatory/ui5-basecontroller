@@ -25,6 +25,9 @@ stages:
 publish:
   stage: release
   script:
+    - npm install
     - npm run deploy
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - package.json       
