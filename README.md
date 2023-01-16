@@ -141,3 +141,7 @@ If there are multiple error messages included, they will be concatenated and sep
 ## navigateToLaunchpad(): void
 This will navigate to the Fiori launchpad.  
 It will only work if it's a Fiori application.
+
+# Authors
+The development is carried out by [Elevatory](https://www.elevatory.de).
+We specialize in the development of SAP applications with ABAP, SAPUI5/Fiori and SAP HANA.
