@@ -43,7 +43,6 @@ npm-publish:
   script: 
     - npm run build
     - npm set //registry.npmjs.org/:_authToken ${NPM_TOKEN}
-    - echo ${NPM_TOKEN}
     - npm publish --verbose --access=public
   when: manual
   rules:
