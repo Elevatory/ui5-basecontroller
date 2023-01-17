@@ -186,43 +186,85 @@ await this.query<BusinessPartner>({
 });
 ```
 
-## async submit({ modelName = this.baseModel, refresh = true }: { modelName?: string, refresh?: boolean }): Promise<void>
+## async submit()
 This function promisifies the submitChanges function of the given ODataModel.  
 Before submitting, it will check for pending changes.  
 If there are no pending changes the submit will be aborted.
+```TS
+await this.submit({ modelName: 'odata', refresh: true});
+```
 
-## async reset(modelName = this.baseModel): Promise<void>
+## async reset()
 This function will trigger the resetChanges function of the given ODataModel.
+```TS
+this.reset();
+```
 
-## async callFunction<T>({ name, urlParameters, modelName, method = 'GET' }: { name: string, urlParameters: Record<string, string | boolean | number | Date>, modelName?: string, method?: string }): Promise<T>
+## async callFunction()
 This function promisifies the callFunction of the given OdataModel.  
 It will receive the Name of the function call/function import aswell as the url Parameters for the call.  
 The generic T can be used for the returning type of the function import.  
 __Need your Metadata as TypeScript Types?__ - Look at the [OData Typify Middleware](https://www.npmjs.com/package/@elevatory/odata-typify-middleware).  
+```TS
+public async onCallFunction(): Promise<void> {
+    const result = await this.callFunction({ name: "/RegenerateAllData", urlParameters: { NoOfSalesOrders: 10 } });
+    MessageBox.show(`Result: ${result}`);
+}
+```
 
-## async refreshToken(modelName = this.baseModel): Promise<void>
+## async refreshToken()
 This function will trigger the refreshSecurityToken of the given ODataModel.
+```TS
+public async onRefreshToken(): Promise<void> {
+    await this.refreshToken();
+    MessageBox.show(`Token refreshed`);
+}
+```
 
 ## toggleBusy()
 This function will flip the property `/busy` of the statemodel `state`.  
 The property /busy could be used for a busy indicator.
+```TS
+public onToggleBusy(): void {
+    this.toggleBusy();
+    MessageBox.show(`Busy toggled, aktuell ${this.getStateModel().getProperty("/busy")}`);
+}
+```
 
-## isOnline(): boolean
+## isOnline()
 This will return a boolean value if the browser is online.  
 It is checked by default window property `window.navigator.onLine`
-
-## focusControl(control: any, abortTime = 10000): void
+```TS
+public onIsOnline(): void {
+    const online = this.isOnline();
+    MessageBox.show(`Online: ${online}`);
+}
+```
+## focusControl()
 Focus a given control by DOM reference.
 It will be aborted as soon as the abortTime is over.  
 The abortion will trigger `window.cancelAnimationFrame`
 
-## public getErrorMessage(error: any): string
+```TS
+public onFocusControl(): void {
+    this.focusControl(this.byId("byIdButton"));
+}
+```
+## getErrorMessage()
 This will parse a OData Error Message and will return the error message.  
 If there are multiple error messages included, they will be concatenated and seperated by a line-break `\n`.
+```TS
+const errorMessage = this.getErrorMessage(error);
+```
 
-## navigateToLaunchpad(): void
+## navigateToLaunchpad()
 This will navigate to the Fiori launchpad.  
 It will only work if it's a Fiori application.
+```TS
+public onNavigateToLaunchpad(): void {
+    this.navigateToLaunchpad();
+}
+```
 
 # Authors
 The development is carried out by [Elevatory](https://www.elevatory.de).
