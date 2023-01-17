@@ -16,93 +16,175 @@ Another option is to use a bundler and a transpiler to create a serve & build st
 As soon as you have `BaseController.js` in you source folder, you can use it in any UI5 Code file.
 You will most likely use it as a parent class for your controllers.
 
-# API / Functions
+# Functions
 The BaseController implements basic and useful functions for developing SAPUI5 Web Applications with TypeScript.
 
 
-## constructor(model: string)
+## constructor()
 The Constructor initializes the object with the given model.  
 This model is used as BaseModel so it doesn't need to be entered in the following functions.  
 The constructor will also try to polyfill the `Promise.allSettled` Function, if it does not already exist in the given UI5/JavaScript libraries.
+```TS
+export default class Example extends BaseController {
+    constructor() {
+        super('modelname');
+    }
+}
+```
 
-
-## getODataModel(id: string = this.baseModel): sap/ui/model/odata/v2/ODataModel
+## getODataModel()
 This function returns the given model as ODataModel.  
 It is defaulted by the BaseModel which is set in the constructor.
+```TS
+const model = this.getODataModel("modelname");
+```
 
-
-## getJSONModel(id: string = this.baseModel): sap/ui/model/json/JSONModel
+## getJSONModel()
 This function returns the given model as JSONModel.  
 It is defaulted by the BaseModel which is set in the constructor.  
-
+```TS
+const model = this.getJSONModel("state");
+```
 
 ## getText(id: string, ...parameters): string
 This function loads the i18n ResourceBundle and retrieves the given text.  
 The parameters-Object will be used as secondParameter of getText-Function of the ResourceBundle.  
-```JS
+```TS
 this.getComponent().getModel('i18n').getResourceBundle().getText(id, parameters);
 ```
 
-## getComponent(): sap/ui/core/Component
+Example
+```TS
+const text = this.getText("i18nTextId");
+```
+
+## getComponent()
 The function returns the Component retreived by this.getView().getOwnerComponent() as correct Type
+```TS
+const component = this.getComponent();
+```
 
-## getRouter(): sap/m/routing/Router
+## getRouter()
 This function retreives the Router-Object by the Controllers OwnerComponent.
+```TS
+const router = this.getRouter();
+```
 
-## byId<T>(id: string): T
+## byId()
 This function replaces the standard controller function this.getView().byId("<id>").  
 The parameter T is a generic and should be set to the Type you want to receive. For example for an Input-Field:  
-```JS
+```TS
 this.byId<Input>("idInputField")
 ```
 
-## getStateModel(): sap/ui/model/json/JSONModel
+## getStateModel()
 A StateModel is an application wide JSONModel used for cross-view data saving and controls.  
 The Model "state" has to be defined in manifest.json for it to be working.
+```TS
+const stateModel = this.getStateModel();
+```
 
-## async quicksave(): Promise<void>
+## async quicksave()
 This function triggers the submit function of the baseModel OData Model and saves changes in the model.
+```TS
+await this.quicksave();
+```
 
-## clearMessageManager(): void
+## clearMessageManager()
 Remove all Messages of the global MessageManager
+```TS
+this.clearMessageManager();
+```
 
-## async confirm(textId, titleTextId?: string): Promise<boolean>
+## async confirm();
 Creates a confirmation dialog.  
 textId is used for the confirmation text, titleTextId is used for the Title of the Dialog.  
 Both Ids need to be i18n Text Ids.
+```TS
+const isConfirmed = await this.confirm('confirmQuestionId', 'confirmTitleId');
+```
 
-## async showError(error): Promise<void>
+## async showError()
 Creates a new MessageBox with the error being shown.  
 Error could be string or a OData Call response.  
 The Promise will be fulfilled when the user closes the dialog.
+```TS
+await this.showError(response);
+```
 
-## async create<T>({ path, properties, modelName = this.baseModel }: { path: string, properties: Object, modelName?: string }): Promise<T>
+## async create()
 This function promisifies the create-operation of the ODataModel.  
 Path should be set to the EntitySet with leading Slash.  
 The properties parameter holds the object needed to be created aligned to the OData Entity.
+```TS
+await this.create<BusinessPartner>({
+    path: '/BusinessPartnerSet',
+    properties: { businessPartner: '123456' },
+    modelName: 'odata'
+});
+```
 
-## createEntry({ path, modelName = this.baseModel, properties = {} }: { path: string, modelName?: string, properties?: Object }): sap/ui/model/Context
+## createEntry()
 This function triggers the createEntry-operation of the ODataModel.
+```TS
+const context = this.createEntry({
+    path: '/BusinessPartnerSet',
+    properties: {
+       Address: { AddressType: '02' },
+       modelName: 'odata'
+   }
+});
+```
 
-## async read<T>({ entitySet, primaryKey, modelName = this.baseModel }: { entitySet: string, primaryKey: Object, modelName?: string }): Promise<T>
+## async read()
 This function promisifies the read-operation of the ODataModel.  
 Entityset should be set to the Entityset with leading Slash.  
 PrimaryKey receives an Object with name-value-pairs of the Entities Primary Keys.  
 The generic T can be used for already forming it to the given Type.  
 __Need your Metadata as TypeScript Types?__ - Look at the [OData Typify Middleware](https://www.npmjs.com/package/@elevatory/odata-typify-middleware).  
-  
+```TS
+await this.read<BusinessPartner>({
+    entitySet: '/BusinessPartnerSet',
+    primaryKey: { businessPartner: '123456'},
+    modelName: 'odata'
+});
+```
 
-## async update<T>({ path, modelName = this.baseModel, entity }: { path: string, modelName?: string, entity: T }): Promise<void>
+## async update()
 This function promisifies the update-operation of the ODataModel.
-
-## async remove({ path, modelName = this.baseModel }: { path: string, modelName?: string }): Promise<void>
+```TS
+await this.update<BusinessPartner>({
+    path: '/BusinessPartnerSet',
+    entity: { businessPartner: '123456', addressId: 1341 },
+    modelName: 'odata'
+});
+```
+## async remove())
 This function promisifies the remove-operation of the ODataModel.
+```TS
+public async onDelete(event: Event) {
+    const path = (event.getSource() as Button).getBindingContext()!.getPath();
+    if (await this.confirm('confirmDelete')) {
+        await this.remove({ path });
+    }
+}
+```
 
-## async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: { entitySet: string; modelName?: string; filters: Filter[]; urlParameters: Record<string, string> }): Promise<T>
+## async query()
 This function promisifies the read(GetList)-operation of the ODataModel.  
 The generic T can be used for already forming it to the given Type.    
 __Need your Metadata as TypeScript Types?__ - Look at the [OData Typify Middleware](https://www.npmjs.com/package/@elevatory/odata-typify-middleware).  
 
+```TS
+const filters = Filter[];
+filters.push(new Filter({ path: 'businessPartner', operator: 'EQ', value1: '123456' }));
+
+await this.query<BusinessPartner>({
+    entitySet: '/BusinessPartnerSet',
+    filters: filters,
+    modelName: 'odata'
+});
+```
 
 ## async submit({ modelName = this.baseModel, refresh = true }: { modelName?: string, refresh?: boolean }): Promise<void>
 This function promisifies the submitChanges function of the given ODataModel.  

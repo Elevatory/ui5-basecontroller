@@ -170,7 +170,7 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: { entitySet: string; modelName?: string; filters: Filter[]; urlParameters: Record<string, string> }): Promise<T> {
+    public async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: { entitySet: string; modelName?: string; filters: Filter[]; urlParameters?: Record<string, string> }): Promise<T> {
         return await new Promise((resolve, reject) => {
             this.getODataModel(modelName).read(entitySet, {
                 success: (result: any) => {
