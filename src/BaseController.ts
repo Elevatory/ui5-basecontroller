@@ -6,7 +6,7 @@ import JSONModel from 'sap/ui/model/json/JSONModel';
 import MessageBox, { Action } from 'sap/m/MessageBox';
 import Component from 'sap/ui/core/Component';
 import Router from 'sap/m/routing/Router';
-import { User } from './types';
+import { CallFunctionProperties, CreateEntryProperties, CreateProperties, Entity, QueryProperties, ReadEntityProperties, ReadPathProperties, ReadProperties, RemoveEntityProperties, RemovePathProperties, RemoveProperties, SubmitProperties, UpdateEntityProperties, UpdatePathProperties, UpdateProperties } from './types';
 
 /**
  * @namespace UI5BaseController
@@ -88,9 +88,9 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async create<T>({ entitySet, properties, modelName = this.baseModel }: { entitySet: string, properties: Object, modelName?: string }): Promise<T> {
+    public async create<T>({ entitySet, entity, modelName = this.baseModel }: CreateProperties): Promise<T> {
         return await new Promise((resolve, reject) => {
-            this.getODataModel(modelName).create(this.getEntitySetName(entitySet), properties, {
+            this.getODataModel(modelName).create(this.getEntitySetName(entitySet), this.getEntity(entitySet, entity), {
                 success: (oData: any) => {
                     resolve(oData);
                 },
@@ -101,14 +101,14 @@ export default class BaseController extends Controller {
         });
     }
 
-    public createEntry({ entitySet, properties = {}, modelName = this.baseModel }: { entitySet: string, properties?: Object, modelName?: string }): Context {
-        return this.getODataModel(modelName).createEntry(this.getEntitySetName(entitySet), { properties }) as unknown as Context;
+    public createEntry({ entitySet, entity = {}, modelName = this.baseModel }: CreateEntryProperties): Context {
+        return this.getODataModel(modelName).createEntry(this.getEntitySetName(entitySet), { properties: this.getEntity(entitySet, entity) }) as unknown as Context;
     }
 
-    public async read<T>({ entitySet, primaryKey, modelName = this.baseModel }: { entitySet: string, primaryKey: Object, modelName?: string }): Promise<T>;
-    public async read<T>({ entitySet, entity, modelName = this.baseModel }: { entitySet: string, entity: Object, modelName?: string }): Promise<T>;
+    public async read<T>({ entitySet, primaryKey, modelName = this.baseModel }: ReadPathProperties): Promise<T>;
+    public async read<T>({ entitySet, entity, modelName = this.baseModel }: ReadEntityProperties): Promise<T>;
 
-    public async read<T>({ entitySet, primaryKey, entity, modelName = this.baseModel }: { entitySet: string, primaryKey: Object, entity: Object, modelName?: string }): Promise<T> {
+    public async read<T>({ entitySet, primaryKey, entity, modelName = this.baseModel }: ReadProperties): Promise<T> {
         let path = '';
 
         if (primaryKey) {
@@ -120,7 +120,7 @@ export default class BaseController extends Controller {
                     })
                     .join(',')})`;
         } else {
-            path = this.getPath(entitySet, entity as Object);
+            path = this.getPath(entitySet, entity);
         }
 
         return new Promise((resolve, reject) => {
@@ -135,12 +135,13 @@ export default class BaseController extends Controller {
         });
     }
 
-    protected async update<T>({ path, entity, modelName = this.baseModel }: { path: string, entity: T, modelName?: string }): Promise<void>;
-    protected async update<T>({ entitySet, entity, modelName = this.baseModel }: { entitySet: string, entity: T, modelName?: string }): Promise<void>;
+    protected async update({ path, entity, modelName = this.baseModel }: UpdatePathProperties): Promise<void>;
+    protected async update({ entitySet, entity, modelName = this.baseModel }: UpdateEntityProperties): Promise<void>;
 
-    protected async update<T>({ path, entity, entitySet, modelName = this.baseModel }: { path: string, modelName?: string, entity: T, entitySet: string }): Promise<void> {
+    protected async update({ path, entity, entitySet, modelName = this.baseModel }: UpdateProperties): Promise<void> {
         return await new Promise((resolve, reject) => {
-            path = path ? path : this.getPath(entitySet, entity as Object);
+            path = path ? path : this.getPath(entitySet, entity);
+            entity = this.getEntity(entitySet, entity);
             this.getODataModel(modelName).update(path, entity as Object, {
                 success: () => {
                     resolve();
@@ -152,10 +153,10 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async remove({ path, modelName }: { path: string, modelName?: string }): Promise<void>;
-    public async remove({ entitySet, entity, modelName }: { entitySet: string, entity: Record<string, string | boolean | number | Date> | object, modelName?: string }): Promise<void>;
+    public async remove({ path, modelName }: RemovePathProperties): Promise<void>;
+    public async remove({ entitySet, entity, modelName }: RemoveEntityProperties): Promise<void>;
 
-    public async remove({ path, entitySet, entity, modelName = this.baseModel }: { path: string, entitySet: string, entity: Record<string, string | boolean | number | Date> | object, modelName?: string }): Promise<void> {
+    public async remove({ path, entitySet, entity, modelName = this.baseModel }: RemoveProperties): Promise<void> {
         return new Promise((resolve, reject) => {
             const onCompleted = (event: any) => {
                 this.getODataModel(modelName).detachRequestCompleted(onCompleted);
@@ -171,21 +172,18 @@ export default class BaseController extends Controller {
                 this.getODataModel(modelName).detachRequestFailed(onFailed);
                 reject(err);
             };
-
-            if (path) {
+            try {
                 this.getODataModel(modelName).attachRequestCompleted(onCompleted);
                 this.getODataModel(modelName).attachRequestFailed(onFailed);
-                this.getODataModel(modelName).remove(path);
-            } else {
-                this.getODataModel(modelName).attachRequestCompleted(onCompleted);
-                this.getODataModel(modelName).attachRequestFailed(onFailed);
-
-                this.getODataModel(modelName).remove(this.getPath(entitySet, entity));
+                this.getODataModel(modelName).remove(path ? path : this.getPath(entitySet, entity));
+            } catch (error) {
+                this.getODataModel(modelName).detachRequestCompleted(onCompleted);
+                this.getODataModel(modelName).detachRequestFailed(onFailed);
             }
         });
     }
 
-    public async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: { entitySet: string; modelName?: string; filters: Filter[]; urlParameters?: Record<string, string> }): Promise<T> {
+    public async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: QueryProperties): Promise<T> {
         return await new Promise((resolve, reject) => {
             this.getODataModel(modelName).read(entitySet, {
                 success: (result: any) => {
@@ -200,7 +198,7 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async submit({ refresh = true, modelName = this.baseModel }: { modelName?: string, refresh?: boolean }): Promise<void> {
+    public async submit({ refresh = true, modelName = this.baseModel }: SubmitProperties): Promise<void> {
         const defaultRefreshBehavior = this.getODataModel(modelName).getRefreshAfterChange();
         this.getODataModel(modelName).setRefreshAfterChange(refresh);
 
@@ -237,7 +235,7 @@ export default class BaseController extends Controller {
         await this.getODataModel(modelName).resetChanges();
     }
 
-    public async callFunction<T>({ name, urlParameters, method = 'GET', modelName }: { name: string, urlParameters: Record<string, string | boolean | number | Date>, modelName?: string, method?: string }): Promise<T> {
+    public async callFunction<T>({ name, urlParameters, method = 'GET', modelName }: CallFunctionProperties): Promise<T> {
         await Promise.allSettled([this.getODataModel(modelName).securityTokenAvailable()]);
 
         return await new Promise((resolve, reject) => {
@@ -346,7 +344,7 @@ export default class BaseController extends Controller {
         return entitySet.startsWith('/') ? entitySet : `/${entitySet}`;
     }
 
-    private getPath(entitySet: string, entity: Record<string, string | boolean | number | Date> | object): string {
+    private getPath(entitySet: string, entity: Entity): string {
         const entitySetName = this.getEntitySetName(entitySet);
         const primaryKeys = this.getPrimaryKeys(entitySet);
         const primaryKeyString = primaryKeys.length === 1 ? `'${encodeURIComponent(entity[primaryKeys[0] as keyof Object] as unknown as string)}'` : `${primaryKeys.map(key => `${key}='${encodeURIComponent(entity[key as keyof Object] as unknown as string)}'`).join(',')}`;
@@ -356,6 +354,18 @@ export default class BaseController extends Controller {
 
     private getPrimaryKeys(entitySet: string): string[] {
         return (this.getODataModel().getMetaModel() as any).oDataModel.oMetadata.mEntitySets[(entitySet.replace('/', ''))].__entityType.key.propertyRef.map((key: any) => key.name);
+    }
+
+    private getEntity(entitySet: string, entity: Entity): Entity {
+        const properties = (this.getODataModel().getMetaModel() as any).oDataModel.oMetadata.mEntitySets[(entitySet.replace('/', ''))].__entityType.property.map((property: any) => property.name);
+
+        return Object.keys(entity).reduce((result: Entity, key: string) => {
+            if (properties.includes(key)) {
+                result[key] = entity[key];
+            }
+
+            return result;
+        }, {});
     }
 
     private polyfillPromiseAllSettled() {
