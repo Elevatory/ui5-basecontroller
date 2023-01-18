@@ -178,7 +178,11 @@ export default class BaseController extends Controller {
     }
 
     private getPath(entitySet: string, entity: Record<string, string | boolean | number | Date> | object): string {
-        return this.getEntitySetName(entitySet) + '(' + this.getPrimaryKeys(entitySet).map(key => `${key}='${entity[key as keyof Object] as unknown as string}'`).join(',') + ')';
+        const entitySetName = this.getEntitySetName(entitySet);
+        const primaryKeys = this.getPrimaryKeys(entitySet);
+        const primaryKeyString = primaryKeys.length === 1 ? `'${entity[primaryKeys[0] as keyof Object] as unknown as string}'` : `${primaryKeys.map(key => `${key}='${entity[key as keyof Object] as unknown as string}'`).join(',')}`;
+
+        return `${entitySetName}(${primaryKeyString})`;
     }
 
     private getPrimaryKeys(entitySet: string): string[] {
