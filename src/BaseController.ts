@@ -145,9 +145,9 @@ export default class BaseController extends Controller {
     }
 
     public async remove({ path, modelName }: { path: string, modelName?: string }): Promise<void>;
-    public async remove({ entitySet, entity, modelName }: { entitySet: string, entity: Record<string, string | boolean | number | Date>, modelName?: string }): Promise<void>;
+    public async remove({ entitySet, entity, modelName }: { entitySet: string, entity: Record<string, string | boolean | number | Date> | object, modelName?: string }): Promise<void>;
 
-    public async remove({ path, entitySet, entity, modelName = this.baseModel }: { path: string, entitySet: string, entity: Record<string, string | boolean | number | Date>, modelName?: string }): Promise<void> {
+    public async remove({ path, entitySet, entity, modelName = this.baseModel }: { path: string, entitySet: string, entity: Record<string, string | boolean | number | Date> | object, modelName?: string }): Promise<void> {
         return new Promise((resolve, reject) => {
             const onCompleted = (event: any) => {
                 this.getODataModel(modelName).detachRequestCompleted(onCompleted);
@@ -177,12 +177,12 @@ export default class BaseController extends Controller {
         });
     }
 
-    private getPath(entitySet: string, entity: Record<string, string | boolean | number | Date>): string {
+    private getPath(entitySet: string, entity: Record<string, string | boolean | number | Date> | object): string {
         return this.getEntitySetName(entitySet) + '(' + this.getPrimaryKeys(entitySet).map(key => `${key}='${entity[key as keyof Object] as unknown as string}'`).join(',') + ')';
     }
 
     private getPrimaryKeys(entitySet: string): string[] {
-        return (this.getODataModel().getMetaModel().getODataEntitySet(entitySet) as any).key.propertyRef.map((key: any) => key.name);
+        return (this.getODataModel().getMetaModel().getODataEntitySet(entitySet.replace('/', '')) as any).__entityType.key.propertyRef.map((key: any) => key.name);
     }
 
     public async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: { entitySet: string; modelName?: string; filters: Filter[]; urlParameters?: Record<string, string> }): Promise<T> {
