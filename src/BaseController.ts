@@ -6,6 +6,7 @@ import JSONModel from 'sap/ui/model/json/JSONModel';
 import MessageBox, { Action } from 'sap/m/MessageBox';
 import Component from 'sap/ui/core/Component';
 import Router from 'sap/m/routing/Router';
+import { User } from './types';
 
 /**
  * @namespace UI5BaseController
@@ -51,10 +52,6 @@ export default class BaseController extends Controller {
 
     public getStateModel(): JSONModel {
         return this.getJSONModel('state');
-    }
-
-    public async quicksave(): Promise<void> {
-        await this.submit({ modelName: this.baseModel });
     }
 
     public clearMessageManager(): void {
@@ -147,7 +144,10 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async remove({ path, modelName = this.baseModel }: { path: string, modelName?: string }): Promise<void> {
+    public async remove({ path, modelName }: { path: string, modelName?: string }): Promise<void>;
+    public async remove({ entitySet, entity, modelName }: { entitySet: string, entity: Record<string, string | boolean | number | Date>, modelName?: string }): Promise<void>;
+
+    public async remove({ path, entitySet, entity, modelName = this.baseModel }: { path: string, entitySet: string, entity: Record<string, string | boolean | number | Date>, modelName?: string }): Promise<void> {
         return new Promise((resolve, reject) => {
             const onCompleted = (event: any) => {
                 this.getODataModel(modelName).detachRequestCompleted(onCompleted);
@@ -164,10 +164,25 @@ export default class BaseController extends Controller {
                 reject(err);
             };
 
-            this.getODataModel(modelName).attachRequestCompleted(onCompleted);
-            this.getODataModel(modelName).attachRequestFailed(onFailed);
-            this.getODataModel(modelName).remove(path);
+            if (path) {
+                this.getODataModel(modelName).attachRequestCompleted(onCompleted);
+                this.getODataModel(modelName).attachRequestFailed(onFailed);
+                this.getODataModel(modelName).remove(path);
+            } else {
+                this.getODataModel(modelName).attachRequestCompleted(onCompleted);
+                this.getODataModel(modelName).attachRequestFailed(onFailed);
+
+                this.getODataModel(modelName).remove(this.getPath(entitySet, entity));
+            }
         });
+    }
+
+    private getPath(entitySet: string, entity: Record<string, string | boolean | number | Date>): string {
+        return this.getEntitySetName(entitySet) + '(' + this.getPrimaryKeys(entitySet).map(key => `${key}='${entity[key as keyof Object] as unknown as string}'`).join(',') + ')';
+    }
+
+    private getPrimaryKeys(entitySet: string): string[] {
+        return (this.getODataModel().getMetaModel().getODataEntitySet(entitySet) as any).key.propertyRef.map((key: any) => key.name);
     }
 
     public async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: { entitySet: string; modelName?: string; filters: Filter[]; urlParameters?: Record<string, string> }): Promise<T> {
@@ -185,7 +200,7 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async submit({ modelName = this.baseModel, refresh = true }: { modelName?: string, refresh?: boolean }): Promise<void> {
+    public async submit({ refresh = true, modelName = this.baseModel }: { modelName?: string, refresh?: boolean }): Promise<void> {
         const defaultRefreshBehavior = this.getODataModel(modelName).getRefreshAfterChange();
         this.getODataModel(modelName).setRefreshAfterChange(refresh);
 
@@ -222,7 +237,7 @@ export default class BaseController extends Controller {
         await this.getODataModel(modelName).resetChanges();
     }
 
-    public async callFunction<T>({ name, urlParameters, modelName, method = 'GET' }: { name: string, urlParameters: Record<string, string | boolean | number | Date>, modelName?: string, method?: string }): Promise<T> {
+    public async callFunction<T>({ name, urlParameters, method = 'GET', modelName }: { name: string, urlParameters: Record<string, string | boolean | number | Date>, modelName?: string, method?: string }): Promise<T> {
         await Promise.allSettled([this.getODataModel(modelName).securityTokenAvailable()]);
 
         return await new Promise((resolve, reject) => {
@@ -250,11 +265,6 @@ export default class BaseController extends Controller {
                 }
             );
         });
-    }
-
-    public toggleBusy() {
-        const busy = this.getStateModel().getProperty('/busy');
-        this.getStateModel().setProperty('/busy', !busy);
     }
 
     public isOnline(): boolean {
@@ -330,6 +340,10 @@ export default class BaseController extends Controller {
                     semanticObject: '#'
                 }
             });
+    }
+
+    private getEntitySetName(entitySet: string): string {
+        return entitySet.startsWith('/') ? entitySet : `/${entitySet}`;
     }
 
     private polyfillPromiseAllSettled() {
