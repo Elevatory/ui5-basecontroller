@@ -137,11 +137,7 @@ export default class BaseController extends Controller {
 
     protected async update<T>({ path, entity, modelName = this.baseModel }: { path: string, entity: T, modelName?: string }): Promise<void>;
     protected async update<T>({ entitySet, entity, modelName = this.baseModel }: { entitySet: string, entity: T, modelName?: string }): Promise<void>;
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> feature
     protected async update<T>({ path, entity, entitySet, modelName = this.baseModel }: { path: string, modelName?: string, entity: T, entitySet: string }): Promise<void> {
         return await new Promise((resolve, reject) => {
             path = path ? path : this.getPath(entitySet, entity as Object);
