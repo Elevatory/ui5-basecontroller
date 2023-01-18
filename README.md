@@ -279,14 +279,6 @@ It is defaulted by the BaseModel which is set in the constructor.
 const model = this.getJSONModel("state");
 ```
 
-#### getStateModel
-A StateModel is an application wide JSONModel used for cross-view data saving and controls.  
-The Model "state" has to be defined in manifest.json for it to be working.
-
-```TS
-const stateModel = this.getStateModel();
-```
-
 #### getComponent
 The function returns the Component retreived by this.getView().getOwnerComponent() as correct Type
 
