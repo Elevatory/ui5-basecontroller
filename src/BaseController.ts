@@ -88,9 +88,9 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async create<T>({ path, properties, modelName = this.baseModel }: { path: string, properties: Object, modelName?: string }): Promise<T> {
+    public async create<T>({ entitySet, properties, modelName = this.baseModel }: { entitySet: string, properties: Object, modelName?: string }): Promise<T> {
         return await new Promise((resolve, reject) => {
-            this.getODataModel(modelName).create(path, properties, {
+            this.getODataModel(modelName).create(this.getEntitySetName(entitySet), properties, {
                 success: (oData: any) => {
                     resolve(oData);
                 },
@@ -105,18 +105,26 @@ export default class BaseController extends Controller {
         return this.getODataModel(modelName).createEntry(this.getEntitySetName(entitySet), { properties }) as unknown as Context;
     }
 
-    public async read<T>({ entitySet, primaryKey, modelName = this.baseModel }: { entitySet: string, primaryKey: Object, modelName?: string }): Promise<T> {
-        const pathWithKeys =
-            entitySet +
-            `(${Object.keys(primaryKey)
-                .map(key => {
-                    const keyString = primaryKey[key as keyof Object] as unknown as string;
-                    return typeof primaryKey[key as keyof Object] === 'number' ? `${key}=${encodeURIComponent(keyString)}` : `${key}='${encodeURIComponent(keyString)}'`;
-                })
-                .join(',')})`;
+    public async read<T>({ entitySet, primaryKey, modelName = this.baseModel }: { entitySet: string, primaryKey: Object, modelName?: string }): Promise<T>;
+    public async read<T>({ entitySet, entity, modelName = this.baseModel }: { entitySet: string, entity: Object, modelName?: string }): Promise<T>;
+
+    public async read<T>({ entitySet, primaryKey, entity, modelName = this.baseModel }: { entitySet: string, primaryKey: Object, entity: Object, modelName?: string }): Promise<T> {
+        let path = '';
+
+        if (primaryKey) {
+            path = this.getEntitySetName(entitySet) +
+                `(${Object.keys(primaryKey)
+                    .map(key => {
+                        const keyString = primaryKey[key as keyof Object] as unknown as string;
+                        return typeof primaryKey[key as keyof Object] === 'number' ? `${key}=${encodeURIComponent(keyString)}` : `${key}='${encodeURIComponent(keyString)}'`;
+                    })
+                    .join(',')})`;
+        } else {
+            path = this.getPath(entitySet, entity as Object);
+        }
 
         return new Promise((resolve, reject) => {
-            this.getODataModel(modelName).read(pathWithKeys, {
+            this.getODataModel(modelName).read(path, {
                 success: (oData: any) => {
                     resolve(oData.result || oData);
                 },
@@ -129,7 +137,11 @@ export default class BaseController extends Controller {
 
     protected async update<T>({ path, entity, modelName = this.baseModel }: { path: string, entity: T, modelName?: string }): Promise<void>;
     protected async update<T>({ entitySet, entity, modelName = this.baseModel }: { entitySet: string, entity: T, modelName?: string }): Promise<void>;
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> feature
     protected async update<T>({ path, entity, entitySet, modelName = this.baseModel }: { path: string, modelName?: string, entity: T, entitySet: string }): Promise<void> {
         return await new Promise((resolve, reject) => {
             path = path ? path : this.getPath(entitySet, entity as Object);
