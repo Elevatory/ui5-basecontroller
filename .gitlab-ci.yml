@@ -21,7 +21,7 @@ dev-publish:
         echo "@${CI_PROJECT_ROOT_NAMESPACE}:registry=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/npm/"
         echo "${CI_API_V4_URL#https?}/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=\${CI_JOB_TOKEN}"
       } | tee --append .npmrc
-    - sed 's:@elevatory/ui5-basecontroller:@elevatory/ui5-basecontroller-dev' package.json
+    - sed -i 's:@elevatory/ui5-basecontroller:@elevatory/ui5-basecontroller-dev:g' package.json
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
