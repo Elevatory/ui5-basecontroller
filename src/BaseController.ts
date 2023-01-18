@@ -50,10 +50,6 @@ export default class BaseController extends Controller {
         return this.getView().byId(id) as unknown as T;
     }
 
-    public getStateModel(): JSONModel {
-        return this.getJSONModel('state');
-    }
-
     public clearMessageManager(): void {
         sap.ui.getCore().getMessageManager().removeAllMessages();
     }
@@ -105,8 +101,8 @@ export default class BaseController extends Controller {
         });
     }
 
-    public createEntry({ path, modelName = this.baseModel, properties = {} }: { path: string, modelName?: string, properties?: Object }): Context {
-        return this.getODataModel(modelName).createEntry(path, { properties }) as unknown as Context;
+    public createEntry({ entitySet, properties = {}, modelName = this.baseModel }: { entitySet: string, properties?: Object, modelName?: string }): Context {
+        return this.getODataModel(modelName).createEntry(this.getEntitySetName(entitySet), { properties }) as unknown as Context;
     }
 
     public async read<T>({ entitySet, primaryKey, modelName = this.baseModel }: { entitySet: string, primaryKey: Object, modelName?: string }): Promise<T> {
@@ -131,8 +127,12 @@ export default class BaseController extends Controller {
         });
     }
 
-    protected async update<T>({ path, modelName = this.baseModel, entity }: { path: string, modelName?: string, entity: T }): Promise<void> {
+    protected async update<T>({ path, entity, modelName = this.baseModel }: { path: string, entity: T, modelName?: string }): Promise<void>;
+    protected async update<T>({ entitySet, entity, modelName = this.baseModel }: { entitySet: string, entity: T, modelName?: string }): Promise<void>;
+    
+    protected async update<T>({ path, entity, entitySet, modelName = this.baseModel }: { path: string, modelName?: string, entity: T, entitySet: string }): Promise<void> {
         return await new Promise((resolve, reject) => {
+            path = path ? path : this.getPath(entitySet, entity as Object);
             this.getODataModel(modelName).update(path, entity as Object, {
                 success: () => {
                     resolve();
@@ -175,18 +175,6 @@ export default class BaseController extends Controller {
                 this.getODataModel(modelName).remove(this.getPath(entitySet, entity));
             }
         });
-    }
-
-    private getPath(entitySet: string, entity: Record<string, string | boolean | number | Date> | object): string {
-        const entitySetName = this.getEntitySetName(entitySet);
-        const primaryKeys = this.getPrimaryKeys(entitySet);
-        const primaryKeyString = primaryKeys.length === 1 ? `'${entity[primaryKeys[0] as keyof Object] as unknown as string}'` : `${primaryKeys.map(key => `${key}='${entity[key as keyof Object] as unknown as string}'`).join(',')}`;
-
-        return `${entitySetName}(${primaryKeyString})`;
-    }
-
-    private getPrimaryKeys(entitySet: string): string[] {
-        return (this.getODataModel().getMetaModel() as any).oDataModel.oMetadata.mEntitySets[(entitySet.replace('/', ''))].__entityType.key.propertyRef.map((key: any) => key.name);
     }
 
     public async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: { entitySet: string; modelName?: string; filters: Filter[]; urlParameters?: Record<string, string> }): Promise<T> {
@@ -276,13 +264,13 @@ export default class BaseController extends Controller {
     }
 
     public async getCurrentUser(): Promise<string> {
-        if (!this.getStateModel().getProperty('/user')) {
+        if (!this.getJSONModel("state").getProperty('/user')) {
             const response = await fetch('/sap/bc/ui2/start_up');
             const { id } = await response.json();
-            this.getStateModel().setProperty('/user', id);
+            this.getJSONModel("state").setProperty('/user', id);
         }
 
-        return this.getStateModel().getProperty('/user');
+        return this.getJSONModel("state").getProperty('/user');
     }
 
     public focusControl(control: any, abortTime = 10000): void {
@@ -348,6 +336,18 @@ export default class BaseController extends Controller {
 
     private getEntitySetName(entitySet: string): string {
         return entitySet.startsWith('/') ? entitySet : `/${entitySet}`;
+    }
+
+    private getPath(entitySet: string, entity: Record<string, string | boolean | number | Date> | object): string {
+        const entitySetName = this.getEntitySetName(entitySet);
+        const primaryKeys = this.getPrimaryKeys(entitySet);
+        const primaryKeyString = primaryKeys.length === 1 ? `'${encodeURIComponent(entity[primaryKeys[0] as keyof Object] as unknown as string)}'` : `${primaryKeys.map(key => `${key}='${encodeURIComponent(entity[key as keyof Object] as unknown as string)}'`).join(',')}`;
+
+        return `${entitySetName}(${primaryKeyString})`;
+    }
+
+    private getPrimaryKeys(entitySet: string): string[] {
+        return (this.getODataModel().getMetaModel() as any).oDataModel.oMetadata.mEntitySets[(entitySet.replace('/', ''))].__entityType.key.propertyRef.map((key: any) => key.name);
     }
 
     private polyfillPromiseAllSettled() {
