@@ -12,6 +12,27 @@ stages:
   - gitlab
   - npm
 
+dev-publish:
+  stage: gitlab
+  before_script:
+    - npm ci --cache .npm --prefer-offline
+    - |
+      {
+        echo "@${CI_PROJECT_ROOT_NAMESPACE}:registry=${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/npm/"
+        echo "${CI_API_V4_URL#https?}/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=\${CI_JOB_TOKEN}"
+      } | tee --append .npmrc
+    - sed -i 's:@elevatory/ui5-basecontroller:@elevatory/ui5-basecontroller-dev:g' package.json
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .npm/  
+  script:
+    - npm run deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH  
+      changes:
+        - package.json    
+
 gitlab-publish:
   stage: gitlab
   before_script:
