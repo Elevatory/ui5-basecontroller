@@ -186,7 +186,7 @@ export default class BaseController extends Controller {
     }
 
     private getPrimaryKeys(entitySet: string): string[] {
-        return (this.getODataModel().getMetaModel().getODataEntitySet(entitySet.replace('/', '')) as any).__entityType.key.propertyRef.map((key: any) => key.name);
+        return (this.getODataModel().getMetaModel() as any).oDataModel.oMetadata.mEntitySets[(entitySet.replace('/', ''))].__entityType.key.propertyRef.map((key: any) => key.name);
     }
 
     public async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: { entitySet: string; modelName?: string; filters: Filter[]; urlParameters?: Record<string, string> }): Promise<T> {
