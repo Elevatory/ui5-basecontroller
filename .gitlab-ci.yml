@@ -29,6 +29,7 @@ dev-publish:
   script:
     - npm run deploy
   rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH  
       changes:
         - package.json    
 
