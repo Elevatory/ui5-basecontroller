@@ -24,19 +24,12 @@ export interface CreateEntryProperties {
     modelName?: string
 }
 
-export interface ReadEntityProperties {
+export interface ReadProperties {
     entitySet: string,
     entity: Entity,
     modelName?: string
 }
 
-export interface ReadPathProperties {
-    entitySet: string,
-    primaryKey: Entity,
-    modelName?: string
-}
-
-export interface ReadProperties extends ReadEntityProperties, ReadPathProperties { };
 
 export interface RemoveEntityProperties {
     entitySet: string,
@@ -53,21 +46,21 @@ export interface RemoveProperties extends RemoveEntityProperties, RemovePathProp
 
 export interface QueryProperties {
     entitySet: string,
-    modelName?: string,
     filters: Filter[],
     urlParameters?: Record<string, string>
+    modelName?: string,
 }
 
 export interface SubmitProperties {
-    modelName?: string,
     refresh?: boolean
+    modelName?: string,
 }
 
 export interface CallFunctionProperties {
     name: string,
     urlParameters: Entity,
-    modelName?: string,
     method?: string
+    modelName?: string,
 }
 
 export interface UpdatePathProperties {

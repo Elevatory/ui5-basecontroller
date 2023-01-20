@@ -6,7 +6,7 @@ import JSONModel from 'sap/ui/model/json/JSONModel';
 import MessageBox, { Action } from 'sap/m/MessageBox';
 import Component from 'sap/ui/core/Component';
 import Router from 'sap/m/routing/Router';
-import { CallFunctionProperties, CreateEntryProperties, CreateProperties, Entity, QueryProperties, ReadEntityProperties, ReadPathProperties, ReadProperties, RemoveEntityProperties, RemovePathProperties, RemoveProperties, SubmitProperties, UpdateEntityProperties, UpdatePathProperties, UpdateProperties } from './types';
+import { CallFunctionProperties, CreateEntryProperties, CreateProperties, Entity, QueryProperties, ReadProperties, RemoveEntityProperties, RemovePathProperties, RemoveProperties, SubmitProperties, UpdateEntityProperties, UpdatePathProperties, UpdateProperties } from './types';
 
 /**
  * @namespace UI5BaseController
@@ -105,23 +105,8 @@ export default class BaseController extends Controller {
         return this.getODataModel(modelName).createEntry(this.getEntitySetName(entitySet), { properties: this.getEntity(entitySet, entity) }) as unknown as Context;
     }
 
-    public async read<T>({ entitySet, primaryKey, modelName = this.baseModel }: ReadPathProperties): Promise<T>;
-    public async read<T>({ entitySet, entity, modelName = this.baseModel }: ReadEntityProperties): Promise<T>;
-
-    public async read<T>({ entitySet, primaryKey, entity, modelName = this.baseModel }: ReadProperties): Promise<T> {
-        let path = '';
-
-        if (primaryKey) {
-            path = this.getEntitySetName(entitySet) +
-                `(${Object.keys(primaryKey)
-                    .map(key => {
-                        const keyString = primaryKey[key as keyof Object] as unknown as string;
-                        return typeof primaryKey[key as keyof Object] === 'number' ? `${key}=${encodeURIComponent(keyString)}` : `${key}='${encodeURIComponent(keyString)}'`;
-                    })
-                    .join(',')})`;
-        } else {
-            path = this.getPath(entitySet, entity);
-        }
+    public async read<T>({ entitySet, entity, modelName = this.baseModel }: ReadProperties): Promise<T> {
+        const path = this.getPath(entitySet, entity);
 
         return new Promise((resolve, reject) => {
             this.getODataModel(modelName).read(path, {
@@ -183,7 +168,7 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async query<T>({ entitySet, modelName = this.baseModel, filters = [], urlParameters = {} }: QueryProperties): Promise<T> {
+    public async query<T>({ entitySet, filters = [], urlParameters = {}, modelName = this.baseModel }: QueryProperties): Promise<T> {
         return await new Promise((resolve, reject) => {
             this.getODataModel(modelName).read(entitySet, {
                 success: (result: any) => {
@@ -359,9 +344,9 @@ export default class BaseController extends Controller {
     private getEntity(entitySet: string, entity: Entity): Entity {
         const properties = (this.getODataModel().getMetaModel() as any).oDataModel.oMetadata.mEntitySets[(entitySet.replace('/', ''))].__entityType.property.map((property: any) => property.name);
 
-        return Object.keys(entity).reduce((result: Entity, key: string) => {
-            if (properties.includes(key)) {
-                result[key] = entity[key];
+        return Object.keys(entity).reduce((result: Entity, property: string) => {
+            if (properties.includes(property)) {
+                result[property] = entity[property];
             }
 
             return result;
