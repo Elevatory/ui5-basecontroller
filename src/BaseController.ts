@@ -117,7 +117,7 @@ export default class BaseController extends Controller {
 
     public createEntry<T extends Entity>({ entitySet, entity = null, modelName = this.baseModel }: CreateEntryProperties<T>): Context {        
         return this.getODataModel(modelName).createEntry(this.getEntitySetName(entitySet), {
-            properties: entity ? { properties: this.getSanitizedEntity(entitySet, entity) } : {}
+            properties: entity ? this.getSanitizedEntity(entitySet, entity) : {}
         });
     }
 
