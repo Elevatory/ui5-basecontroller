@@ -83,7 +83,7 @@ This method wraps and promisifies the create operation of the OData Model.
 
 ```typescript
 const businessPartner = await this.create<BusinessPartner>({
-    entitySet: '/BusinessPartnerSet',
+    entitySet: 'BusinessPartnerSet',
     entity: { 
         BusinessPartnerID: '123456',
         Address: { AddressType: '02' }, 
@@ -100,7 +100,7 @@ This method wraps the createEntry operation of the OData Model.
 
 ```typescript
 const context = this.createEntry({
-    entitySet: '/BusinessPartnerSet',
+    entitySet: 'BusinessPartnerSet',
     entity: {
        BusinessPartnerID: '123456', 
        Address: { AddressType: '02' },
@@ -109,19 +109,19 @@ const context = this.createEntry({
 ```
 
 #### __read__
-This method promisifies the read operation of the OData Model.  
-
-It takes at least two parameters as an input
-- `entitySet` should be set to the name of the EntitySet. If the leading Slash is missing, it will be added automatically.  
-- `entity` should give an object containing the primary keys of the entity. Properties not existing in the entity metadata will be ignored.    
-The generic T can be used for already forming it to the given type.  
+This method wraps and promisifies the read operation of the OData Model.  
+It is designed to read a single entity. If you want to read an entity set, take a look at the __query__ method.
+- `entitySet` is the name of the EntitySet for which you want to create a new entity
+- `entity` is an object containing the primary keys of the entity. Properties that are not part of the key will be ignored.    
 
 ```typescript
 await this.read<BusinessPartner>({
-    entitySet: '/BusinessPartnerSet',
+    entitySet: 'BusinessPartnerSet',
     entity: { businessPartner: '123456'},
 });
 ```
+
+You can specify the returning type of the method by using optional generics (e.g. `<BusinessPartner>`).
 
 #### __update__
 This function promisifies the update operation of the OData Model.  

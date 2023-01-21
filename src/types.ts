@@ -12,15 +12,15 @@ export type User = {
     timeZone: string;
 }
 
-export interface CreateProperties {
+export interface CreateProperties<T = Entity> {
     entitySet: string,
-    entity: Entity,
+    entity: T,
     modelName?: string
 }
 
-export interface CreateEntryProperties {
+export interface CreateEntryProperties<T = Entity> {
     entitySet: string,
-    entity?: Entity,
+    entity?: T,
     modelName?: string
 }
 
@@ -77,5 +77,7 @@ export interface UpdateEntityProperties {
 
 export interface UpdateProperties extends UpdatePathProperties, UpdateEntityProperties { };
 
-export type Entity = Record<string, string | boolean | number | Date>;
+export interface Entity {
+    [key: string]: string | boolean | number | Date | Entity;
+}
 

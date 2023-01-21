@@ -102,7 +102,7 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async create<T>({ entitySet, entity, modelName = this.baseModel }: CreateProperties): Promise<T> {
+    public async create<T extends Entity>({ entitySet, entity, modelName = this.baseModel }: CreateProperties<T>): Promise<T> {
         return await new Promise((resolve, reject) => {
             this.getODataModel(modelName).create(this.getEntitySetName(entitySet), this.getSanitizedEntity(entitySet, entity), {
                 success: (oData: any) => {
@@ -115,9 +115,9 @@ export default class BaseController extends Controller {
         });
     }
 
-    public createEntry({ entitySet, entity = {}, modelName = this.baseModel }: CreateEntryProperties): Context {
+    public createEntry<T extends Entity>({ entitySet, entity = null, modelName = this.baseModel }: CreateEntryProperties<T>): Context {        
         return this.getODataModel(modelName).createEntry(this.getEntitySetName(entitySet), {
-            properties: this.getSanitizedEntity(entitySet, entity)
+            properties: entity ? { properties: this.getSanitizedEntity(entitySet, entity) } : {}
         });
     }
 
