@@ -57,10 +57,12 @@ In addition we added stuff like:
 - optional typing with generics
 - method signatures with objects instead of long parameter list
 - automatic generation of OData Paths from given objects
-- automatic removal of properties that are not part of the metadata before executing a create or update operation
+- automatic removal of extranous properties that are not part of the metadata before executing a create or update operation
 
 In general all operations are performed with the default model unless you explicitly provide another model when calling a method.
 Some of the methods offer the option to provide a type via generics.
+
+__Need your Metadata as TypeScript Types?__ - Look at [OData Typify Middleware](https://www.npmjs.com/package/@elevatory/odata-typify-middleware). 
 
 #### __getODataModel__
 This method returns an instance of the default OData Model if no argument is provided.  
@@ -80,7 +82,7 @@ This method wraps and promisifies the create operation of the OData Model.
 - `entity` is an object of the entity to be created
 
 ```typescript
-await this.create<BusinessPartner>({
+const businessPartner = await this.create<BusinessPartner>({
     entitySet: '/BusinessPartnerSet',
     entity: { 
         BusinessPartnerID: '123456',
@@ -88,6 +90,8 @@ await this.create<BusinessPartner>({
     },
 });
 ```
+
+You can specify the returning type of the method by using optional generics (e.g. `<BusinessPartner>`).
 
 #### __createEntry__
 This method wraps the createEntry operation of the OData Model.
@@ -111,8 +115,6 @@ It takes at least two parameters as an input
 - `entitySet` should be set to the name of the EntitySet. If the leading Slash is missing, it will be added automatically.  
 - `entity` should give an object containing the primary keys of the entity. Properties not existing in the entity metadata will be ignored.    
 The generic T can be used for already forming it to the given type.  
-
-__Need your Metadata as TypeScript Types?__ - Look at the [OData Typify Middleware](https://www.npmjs.com/package/@elevatory/odata-typify-middleware).  
 
 ```typescript
 await this.read<BusinessPartner>({
@@ -180,9 +182,7 @@ This should give the name of the EntitySet. If the leading Slash is missing, it 
 The following parameters are optional  
 - `filters` should give an Array of OData filters( see sap.ui.model.Filter )  
 - `urlParameters` should give an object of the query operation (see Query Documentation of OData)
-- `modelName` should give the name of the odata model. It is defaulted by constructor.
-
-__Need your Metadata as TypeScript Types?__ - Look at the [OData Typify Middleware](https://www.npmjs.com/package/@elevatory/odata-typify-middleware).  
+- `modelName` should give the name of the odata model. It is defaulted by constructor. 
 
 ```typescript
 const filters = Filter[];

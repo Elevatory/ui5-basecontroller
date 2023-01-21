@@ -6,7 +6,21 @@ import JSONModel from 'sap/ui/model/json/JSONModel';
 import MessageBox, { Action } from 'sap/m/MessageBox';
 import Component from 'sap/ui/core/Component';
 import Router from 'sap/m/routing/Router';
-import { CallFunctionProperties, CreateEntryProperties, CreateProperties, Entity, QueryProperties, ReadProperties, RemoveEntityProperties, RemovePathProperties, RemoveProperties, SubmitProperties, UpdateEntityProperties, UpdatePathProperties, UpdateProperties } from './types';
+import {
+    CallFunctionProperties,
+    CreateEntryProperties,
+    CreateProperties,
+    Entity,
+    QueryProperties,
+    ReadProperties,
+    RemoveEntityProperties,
+    RemovePathProperties,
+    RemoveProperties,
+    SubmitProperties,
+    UpdateEntityProperties,
+    UpdatePathProperties,
+    UpdateProperties
+} from './types';
 
 /**
  * @namespace UI5BaseController
@@ -23,14 +37,14 @@ export default class BaseController extends Controller {
 
     public getODataModel(id: string = this.baseModel): ODataModel {
         if (id === '') {
-            return this.getComponent().getModel() as unknown as ODataModel;
+            return this.getComponent().getModel() as ODataModel;
         } else {
-            return this.getComponent().getModel(id) as unknown as ODataModel;
+            return this.getComponent().getModel(id) as ODataModel;
         }
     }
 
     public getJSONModel(id: string = this.baseModel): JSONModel {
-        return this.getComponent().getModel(id) as unknown as JSONModel;
+        return this.getComponent().getModel(id) as JSONModel;
     }
 
     public getText(id: string, ...parameters): string {
@@ -39,7 +53,7 @@ export default class BaseController extends Controller {
     }
 
     public getComponent(): Component {
-        return this.getOwnerComponent() as unknown as Component;
+        return this.getOwnerComponent() as Component;
     }
 
     public getRouter(): Router {
@@ -47,7 +61,7 @@ export default class BaseController extends Controller {
     }
 
     public byId<T>(id: string): T {
-        return this.getView().byId(id) as unknown as T;
+        return this.getView().byId(id) as T;
     }
 
     public clearMessageManager(): void {
@@ -90,7 +104,7 @@ export default class BaseController extends Controller {
 
     public async create<T>({ entitySet, entity, modelName = this.baseModel }: CreateProperties): Promise<T> {
         return await new Promise((resolve, reject) => {
-            this.getODataModel(modelName).create(this.getEntitySetName(entitySet), this.getEntity(entitySet, entity), {
+            this.getODataModel(modelName).create(this.getEntitySetName(entitySet), this.getSanitizedEntity(entitySet, entity), {
                 success: (oData: any) => {
                     resolve(oData);
                 },
@@ -102,7 +116,9 @@ export default class BaseController extends Controller {
     }
 
     public createEntry({ entitySet, entity = {}, modelName = this.baseModel }: CreateEntryProperties): Context {
-        return this.getODataModel(modelName).createEntry(this.getEntitySetName(entitySet), { properties: this.getEntity(entitySet, entity) }) as unknown as Context;
+        return this.getODataModel(modelName).createEntry(this.getEntitySetName(entitySet), {
+            properties: this.getSanitizedEntity(entitySet, entity)
+        });
     }
 
     public async read<T>({ entitySet, entity, modelName = this.baseModel }: ReadProperties): Promise<T> {
@@ -126,7 +142,7 @@ export default class BaseController extends Controller {
     protected async update({ path, entity, entitySet, modelName = this.baseModel }: UpdateProperties): Promise<void> {
         return await new Promise((resolve, reject) => {
             path = path ? path : this.getPath(entitySet, entity);
-            entity = this.getEntity(entitySet, entity);
+            entity = this.getSanitizedEntity(entitySet, entity);
             this.getODataModel(modelName).update(path, entity as Object, {
                 success: () => {
                     resolve();
@@ -255,13 +271,13 @@ export default class BaseController extends Controller {
     }
 
     public async getCurrentUser(): Promise<string> {
-        if (!this.getJSONModel("state").getProperty('/user')) {
+        if (!this.getJSONModel('state').getProperty('/user')) {
             const response = await fetch('/sap/bc/ui2/start_up');
             const { id } = await response.json();
-            this.getJSONModel("state").setProperty('/user', id);
+            this.getJSONModel('state').setProperty('/user', id);
         }
 
-        return this.getJSONModel("state").getProperty('/user');
+        return this.getJSONModel('state').getProperty('/user');
     }
 
     public focusControl(control: any, abortTime = 10000): void {
@@ -332,17 +348,26 @@ export default class BaseController extends Controller {
     private getPath(entitySet: string, entity: Entity): string {
         const entitySetName = this.getEntitySetName(entitySet);
         const primaryKeys = this.getPrimaryKeys(entitySet);
-        const primaryKeyString = primaryKeys.length === 1 ? `'${encodeURIComponent(entity[primaryKeys[0] as keyof Object] as unknown as string)}'` : `${primaryKeys.map(key => `${key}='${encodeURIComponent(entity[key as keyof Object] as unknown as string)}'`).join(',')}`;
+        const primaryKeyString =
+            primaryKeys.length === 1 ? `'${encodeURIComponent(entity[primaryKeys[0]] as string)}'` : `${primaryKeys.map(key => `${key}='${encodeURIComponent(entity[key] as string)}'`).join(',')}`;
 
         return `${entitySetName}(${primaryKeyString})`;
     }
 
     private getPrimaryKeys(entitySet: string): string[] {
-        return (this.getODataModel().getMetaModel() as any).oDataModel.oMetadata.mEntitySets[(entitySet.replace('/', ''))].__entityType.key.propertyRef.map((key: any) => key.name);
+        const entityType = this.getEntitySetType(entitySet);
+        return this.getEntityTypeKeyNames(entityType);
     }
 
-    private getEntity(entitySet: string, entity: Entity): Entity {
-        const properties = (this.getODataModel().getMetaModel() as any).oDataModel.oMetadata.mEntitySets[(entitySet.replace('/', ''))].__entityType.property.map((property: any) => property.name);
+    private getSanitizedEntity(entitySet: string, entity: Entity): Entity {
+        const primaryKeys = this.getPrimaryKeys(entitySet);
+        const missingKeys = primaryKeys.filter(key => !entity[key]);
+
+        if (missingKeys.length > 0) {
+            throw new Error(`Entity is missing keys: ${missingKeys.join(', ')}`);
+        }
+
+        const properties = this.getEntityTypePropertyNames(this.getEntitySetType(entitySet));
 
         return Object.keys(entity).reduce((result: Entity, property: string) => {
             if (properties.includes(property)) {
@@ -351,6 +376,47 @@ export default class BaseController extends Controller {
 
             return result;
         }, {});
+    }
+
+    private getEntitySetType(entitySet: string): string {
+        const metadata = this.getODataModel().getServiceMetadata();
+
+        //@ts-ignore
+        const namespace = metadata.dataServices.schema[0].namespace;
+        //@ts-ignore
+        const entityType = metadata.dataServices.schema[0].entityContainer[0].entitySet.find((set: any) => set.name === entitySet.replace(/^\//, ''))?.entityType.replace(namespace + '.', '');
+
+        if (!entityType) {
+            throw new Error(`Entity set ${entitySet} not found in metadata`);
+        }
+
+        return entityType;
+    }
+
+    private getEntityTypePropertyNames(entityType: string): string[] {
+        const metadata = this.getODataModel().getServiceMetadata();
+
+        //@ts-ignore
+        const properties = metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType)?.property.map((property: any) => property.name);
+
+        if (!properties) {
+            throw new Error(`Entity type ${entityType} not found in metadata`);
+        }
+        
+        return properties;
+    }
+
+    private getEntityTypeKeyNames(entityType: string): string[] {
+        const metadata = this.getODataModel().getServiceMetadata();
+
+        //@ts-ignore
+        const keys = metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType)?.key.propertyRef.map((property: any) => property.name);
+
+        if (!keys) {
+            throw new Error(`Entity type ${entityType} not found in metadata`);
+        }
+
+        return keys;
     }
 
     private polyfillPromiseAllSettled() {
