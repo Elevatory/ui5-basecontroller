@@ -15,7 +15,7 @@ import { CallFunctionProperties, CreateEntryProperties, CreateProperties, Entity
 export default class BaseController extends Controller {
     private baseModel!: string;
 
-    constructor(model: string) {
+    constructor(model?: string) {
         super('Base');
         this.baseModel = model;
         this.polyfillPromiseAllSettled();

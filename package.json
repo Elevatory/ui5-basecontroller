@@ -33,6 +33,7 @@
     "keywords": [
         "Elevatory",
         "SAPUI5",
-        "Base Controller"
+        "Base Controller",
+        "TypeScript"
     ]
 }

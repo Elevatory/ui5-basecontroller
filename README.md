@@ -12,13 +12,15 @@ Please keep in mind, that you have to carry out the copy step again whenever you
 
 Another option is to use a bundler and a transpiler to create a serve & build step that automates the process of including npm modules into UI5 applications. 
 
+Luckily there is a great project [UI5 Tooling Extensions for NPM Package Consumption](https://www.npmjs.com/package/ui5-tooling-modules) that does all of that for you. Check it out. 
+
 # Usage
 As soon as you have `BaseController.js` in you source folder, you can use it in any UI5 Code file.
 You will most likely use it as a parent class for your controllers.
 
 ## Create an Instance
 The base controller is designed to the be parent class of all your controllers.
-That means that yout controllers should extend the Base Controller class.
+That means that your controllers should extend the BaseController class.
 
 ### Extending the Base Controller
 ```TS
@@ -46,9 +48,18 @@ export default class Example extends BaseController {
 The Base Controller implements basic and useful methods for developing SAPUI5 Applications.
 
 ### OData Methods
-A lot of methods are trying to make the usage of OData Operations easier for you.
-In general all operations are performed with the default model unless you explicitly provide another model when calling a method.
+A lot of methods are trying to make the use of OData Operations easier for you.
 
+As you might already now, the SAPUI5 OData Model object uses callbacks to handle asynchronous operation.
+We promisified most of these functions, by wrapping them into methods of the BaseController class.
+
+In addition we added stuff like:
+- optional typing with generics
+- method signatures with objects instead of long parameter list
+- automatic generation of OData Paths from given objects
+- automatic removal of properties that are not part of the metadata before executing a create or update operation
+
+In general all operations are performed with the default model unless you explicitly provide another model when calling a method.
 Some of the methods offer the option to provide a type via generics.
 
 #### __getODataModel__
@@ -64,28 +75,30 @@ const anyODataModel = this.getODataModel('anyODataModel');
 ```
 
 #### __create__
-This method promisifies the create operation of the OData Model.  
-`path` should be set to the name of the EntitySet with leading a leading slash.
-
-The `properties` parameter is the object to be created.
+This method wraps and promisifies the create operation of the OData Model.  
+- `entitySet` is the name of the EntitySet for which you want to create a new entity
+- `entity` is an object of the entity to be created
 
 ```TS
 await this.create<BusinessPartner>({
-    path: '/BusinessPartnerSet',
-    properties: { businessPartner: '123456' },
+    entitySet: '/BusinessPartnerSet',
+    entity: { 
+        BusinessPartnerID: '123456',
+        Address: { AddressType: '02' }, 
+    },
 });
 ```
 
 #### __createEntry__
-This method triggers the createEntry operation of the OData Model.
-`path` should be set to the name of the EntitySet with leading a leading slash.
-
-The `properties` parameter is the object to be created.
+This method wraps the createEntry operation of the OData Model.
+- `entitySet` is the name of the EntitySet for which you want to create a new entity
+- `entity` is an object of the entity to be created
 
 ```TS
 const context = this.createEntry({
-    path: '/BusinessPartnerSet',
-    properties: {
+    entitySet: '/BusinessPartnerSet',
+    entity: {
+       BusinessPartnerID: '123456', 
        Address: { AddressType: '02' },
    }
 });
