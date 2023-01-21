@@ -23,7 +23,7 @@ The base controller is designed to the be parent class of all your controllers.
 That means that your controllers should extend the BaseController class.
 
 ### Extending the Base Controller
-```TS
+```typescript
 export default class Example extends BaseController {
     constructor() {
         super();
@@ -36,7 +36,7 @@ The constructor of the BaseController class has an optional parameter, that can 
 This will set the given OData Model to the default model of your controller.
 All OData Operations, that are provided by the Base Controller will be defaulted to this model if no other model is explicitly specified.
 
-```TS
+```typescript
 export default class Example extends BaseController {
     constructor() {
         super('someDefaultModelName');
