@@ -64,13 +64,13 @@ Some of the methods offer the option to provide a type via generics.
 
 #### __getODataModel__
 This method returns an instance of the default OData Model if no argument is provided.  
-```TS
+```typescript
 const defaultODataModel = this.getODataModel();
 ```
 
 You can also provide the name of an ODate Model to get an instance of that particular model.
 
-```TS
+```typescript
 const anyODataModel = this.getODataModel('anyODataModel');
 ```
 
@@ -79,7 +79,7 @@ This method wraps and promisifies the create operation of the OData Model.
 - `entitySet` is the name of the EntitySet for which you want to create a new entity
 - `entity` is an object of the entity to be created
 
-```TS
+```typescript
 await this.create<BusinessPartner>({
     entitySet: '/BusinessPartnerSet',
     entity: { 
@@ -94,7 +94,7 @@ This method wraps the createEntry operation of the OData Model.
 - `entitySet` is the name of the EntitySet for which you want to create a new entity
 - `entity` is an object of the entity to be created
 
-```TS
+```typescript
 const context = this.createEntry({
     entitySet: '/BusinessPartnerSet',
     entity: {
@@ -114,7 +114,7 @@ The generic T can be used for already forming it to the given type.
 
 __Need your Metadata as TypeScript Types?__ - Look at the [OData Typify Middleware](https://www.npmjs.com/package/@elevatory/odata-typify-middleware).  
 
-```TS
+```typescript
 await this.read<BusinessPartner>({
     entitySet: '/BusinessPartnerSet',
     entity: { businessPartner: '123456'},
@@ -128,7 +128,7 @@ It takes at least two parameters as an input
 - `path` should be set to the entity path in the odata model.  
 - `entity` should contain the object to be updated. Properties not existing in the entity metadata will be ignored.
 
-```TS
+```typescript
 await this.update<BusinessPartner>({
     path: '/BusinessPartnerSet("123456")',
     entity: { businessPartner: '123456', addressId: 1341 }
@@ -139,7 +139,7 @@ Otherwise an overload for this function exists.
 It takes at least two parameters as an input  
 - `entitySet` should be set to the name of the EntitySet. If the leading Slash is missing, it will be added automatically.  
 - `entity` should contain the object to be updated. Properties not existing in the entity metadata will be ignored.
-```TS
+```typescript
 await this.update<BusinessPartner>({
     entitySet: '/BusinessPartnerSet',
     entity: { businessPartner: '123456', addressId: 1341 }
@@ -150,7 +150,7 @@ await this.update<BusinessPartner>({
 This function promisifies the remove operation of the OData Model.
 
 It takes at least the `path` parameter which should give the odata metadata path
-```TS
+```typescript
 public async onDelete(event: Event) {
     const path = (event.getSource() as Button).getBindingContext()!.getPath();
     if (await this.confirm('confirmDelete')) {
@@ -163,7 +163,7 @@ If the path is unknown, an overload for this function exists.
 It takes at least two parameters as an input
 - `entitySet` should be set to the name of the EntitySet. If the leading Slash is missing, it will be added automatically.  
 - `entity` should contain the object to be updated. Properties not existing in the entity metadata will be ignored.
-```TS
+```typescript
 await this.remove({
     entitySet: '/BusinessPartnerSet',
     entity: { businessPartner: '123456' }
@@ -184,7 +184,7 @@ The following parameters are optional
 
 __Need your Metadata as TypeScript Types?__ - Look at the [OData Typify Middleware](https://www.npmjs.com/package/@elevatory/odata-typify-middleware).  
 
-```TS
+```typescript
 const filters = Filter[];
 filters.push(new Filter({ path: 'businessPartner', operator: 'EQ', value1: '123456' }));
 
@@ -203,7 +203,7 @@ If there are no pending changes the submit will be aborted.
 It takes two optional parameters
 - `refresh` triggers a odata model and view refresh after changes are successful
 - `modelName` should give the name of the odata model. It is defaulted by constructor.
-```TS
+```typescript
 await this.submit({ });
 ```
 
@@ -211,7 +211,7 @@ await this.submit({ });
 This function will trigger the resetChanges function of the given OData Model.  
 It takes the optional parameter `modelName` which should receive the name of the odata model. It is defaulted by constructor.
 
-```TS
+```typescript
 this.reset();
 ```
 
@@ -230,7 +230,7 @@ There is two optional parameters
 
 __Need your Metadata as TypeScript Types?__ - Look at the [OData Typify Middleware](https://www.npmjs.com/package/@elevatory/odata-typify-middleware).  
 
-```TS
+```typescript
 public async onCallFunction(): Promise<void> {
     const result = await this.callFunction({ name: "/RegenerateAllData", urlParameters: { NoOfSalesOrders: 10 } });
     MessageBox.show(`Result: ${result}`);
@@ -241,7 +241,7 @@ public async onCallFunction(): Promise<void> {
 This function will trigger the refreshSecurityToken of the given ODataModel.  
 It has a default parameter `modelName` which receives the name of the odata model.
 
-```TS
+```typescript
 public async onRefreshToken(): Promise<void> {
     await this.refreshToken();
     MessageBox.show(`Token refreshed`);
@@ -254,7 +254,7 @@ The following methods are designed to help you to communicate with the user.
 #### __clearMessageManager__
 Remove all Messages of the global MessageManager
 
-```TS
+```typescript
 this.clearMessageManager();
 ```
 
@@ -266,7 +266,7 @@ It takes two obligatory parameters
 - `titleTextId` is used for the Title of the Dialog
 Both Ids need to be i18n Text Ids.
 
-```TS
+```typescript
 const isConfirmed = await this.confirm('confirmQuestionId', 'confirmTitleId');
 ```
 
@@ -278,7 +278,7 @@ It takes two parameters
 - `titleTextId` is used for the Title of the Dialog. It can be i18n text symbol, string or empty.
 
 
-```TS
+```typescript
 const isConfirmed = await this.confirm('confirmQuestionId', 'confirmTitleId');
 ```
 
@@ -287,7 +287,7 @@ Creates a new MessageBox with the error being shown.
 Error could be string or a OData Call response.  
 The Promise will be fulfilled when the user closes the dialog.
 
-```TS
+```typescript
 await this.showError(response);
 ```
 
@@ -295,19 +295,19 @@ await this.showError(response);
 This will parse a OData Error Message and will return the error message.  
 If there are multiple error messages included, they will be concatenated and seperated by a line-break `\n`.
 
-```TS
+```typescript
 const errorMessage = this.getErrorMessage(error);
 ```
 #### __getText__
 This function loads the i18n ResourceBundle and retrieves the given text.  
 The parameters-Object will be used as secondParameter of getText-Function of the ResourceBundle. 
 
-```TS
+```typescript
 this.getComponent().getModel('i18n').getResourceBundle().getText(id, parameters);
 ```
 
 Example
-```TS
+```typescript
 const text = this.getText("i18nTextId");
 ```
 
@@ -316,7 +316,7 @@ const text = this.getText("i18nTextId");
 #### __byId__
 This function replaces the standard controller function this.getView().byId("<id>").  
 The parameter T is a generic and should be set to the Type you want to receive. For example for an Input-Field:  
-```TS
+```typescript
 this.byId<Input>("idInputField")
 ```
 
@@ -325,7 +325,7 @@ Focus a given control by DOM reference.
 It will be aborted as soon as the abortTime is over.  
 The abortion will trigger `window.cancelAnimationFrame`.
 
-```TS
+```typescript
 public onFocusControl(): void {
     this.focusControl(this.byId("byIdButton"));
 }
@@ -338,21 +338,21 @@ Shortcuts are designed to reduce the amount of typing and to add type informatio
 This function returns the given model as JSONModel.  
 It is defaulted by the BaseModel which is set in the constructor.  
 
-```TS
+```typescript
 const model = this.getJSONModel("state");
 ```
 
 #### __getComponent__
 The function returns the Component retreived by this.getView().getOwnerComponent() as correct Type
 
-```TS
+```typescript
 const component = this.getComponent();
 ```
 
 #### __getRouter__
 This function retreives the Router-Object by the Controllers OwnerComponent.
 
-```TS
+```typescript
 const router = this.getRouter();
 ```
 
@@ -360,7 +360,7 @@ const router = this.getRouter();
 This will return a boolean value if the browser is online.  
 It is checked by default window property `window.navigator.onLine`
 
-```TS
+```typescript
 public onIsOnline(): void {
     const online = this.isOnline();
     MessageBox.show(`Online: ${online}`);
@@ -370,7 +370,7 @@ public onIsOnline(): void {
 #### __async getCurrentUser__
 This will retreive the logged in user.  
 
-```TS
+```typescript
 public async onGetCurrentUser(): Promise<void> {
     const user = await this.getCurrentUser();
     MessageBox.show(`User: ${user}`);
@@ -380,7 +380,7 @@ public async onGetCurrentUser(): Promise<void> {
 This will navigate to the Fiori launchpad.  
 It will only work if it's a Fiori application.
 
-```TS
+```typescript
 public onNavigateToLaunchpad(): void {
     this.navigateToLaunchpad();
 }
