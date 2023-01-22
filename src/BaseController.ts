@@ -62,8 +62,7 @@ export default class BaseController extends Controller {
 
     public byId<T>(id: string): T {
         return this.getView().byId(id) as T;
-    }
-    
+    }    
 
     protected clearMessageManager(): void {
         sap.ui.getCore().getMessageManager().removeAllMessages();
