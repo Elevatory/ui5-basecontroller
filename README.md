@@ -176,29 +176,46 @@ const businessPartner = await this.read<BusinessPartner>({
 #### **update**
 
 This function wraps and promisifies the update operation of the OData Model.
+There are two overloads of the method.
+You can use it by providing a path or an entity that includes all key fields.
 
-It takes at least two parameters as an input
+1. Using a path
 
--   `path` should be set to the entity path in the odata model.
--   `entity` should contain the object to be updated. Properties not existing in the entity metadata will be ignored.
+-   `path` is the path to the OData entity
+-   `entity` is an object of the entity to be created
 
 ```typescript
-await this.update<BusinessPartner>({
-    path: '/BusinessPartnerSet("123456")',
-    entity: { businessPartner: '123456', addressId: 1341 }
+await this.update({
+    path: 'BusinessPartnerSet("123456")',
+    entity: {
+        EmailAddress: '123@example.com'
+    }
 });
 ```
 
-Otherwise an overload for this function exists.  
-It takes at least two parameters as an input
+2. Using an entity with all key fields
 
--   `entitySet` should be set to the name of the EntitySet. If the leading Slash is missing, it will be added automatically.
--   `entity` should contain the object to be updated. Properties not existing in the entity metadata will be ignored.
+-   `entitySet` is the name of the EntitySet for which you want to update an entity
+-   `entity` is an object of the entity to be created including all key fields and the fields that ýou want to update
 
 ```typescript
-await this.update<BusinessPartner>({
-    entitySet: '/BusinessPartnerSet',
-    entity: { businessPartner: '123456', addressId: 1341 }
+await this.update({
+    entitySet: 'BusinessPartnerSet',
+    entity: {
+        BusinessPartnerID: '123456',
+        Address: { AddressType: '02' }
+    }
+});
+```
+
+You can specify the type of the entity with an optional generic for both overloads.
+This will lead to the following:
+
+-   the provided entity is checked against the type, where all properties are optional
+
+```typescript
+const businessPartner = await this.update<BusinessPartner>({
+    ...
 });
 ```
 
