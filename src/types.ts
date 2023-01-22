@@ -64,14 +64,15 @@ export interface CallFunctionProperties {
 }
 
 export interface UpdatePathProperties<T = Entity> {
+
     path: string,
-    entity: T,
+    entity: Partial<T>,
     modelName?: string
 }
 
 export interface UpdateEntityProperties<T = Entity> {
     entitySet: string,
-    entity: T,
+    entity: Partial<T>,
     modelName?: string
 }
 
