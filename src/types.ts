@@ -78,6 +78,5 @@ export interface UpdateEntityProperties {
 export interface UpdateProperties extends UpdatePathProperties, UpdateEntityProperties { };
 
 export interface Entity {
-    [key: string]: string | boolean | number | Date | Entity;
+    [key: string]: string | number | Date | null | undefined | Entity;
 }
-
