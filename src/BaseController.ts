@@ -60,7 +60,7 @@ export default class BaseController extends Controller {
         return (this.getOwnerComponent() as any).getRouter();
     }
 
-    protected byId<T>(id: string): T {
+    public byId<T>(id: string): T {
         return this.getView().byId(id) as T;
     }
 
