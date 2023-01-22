@@ -348,8 +348,10 @@ export default class BaseController extends Controller {
     private getPath(entitySet: string, entity: Entity): string {
         const entitySetName = this.getEntitySetName(entitySet);
         const primaryKeys = this.getPrimaryKeys(entitySet);
+        const sanitizedEntity = this.getSanitizedEntity(entitySet, entity);
+
         const primaryKeyString =
-            primaryKeys.length === 1 ? `'${encodeURIComponent(entity[primaryKeys[0]] as string)}'` : `${primaryKeys.map(key => `${key}='${encodeURIComponent(entity[key] as string)}'`).join(',')}`;
+            primaryKeys.length === 1 ? `'${encodeURIComponent(sanitizedEntity[primaryKeys[0]] as string)}'` : `${primaryKeys.map(key => `${key}='${encodeURIComponent(sanitizedEntity[key] as string)}'`).join(',')}`;
 
         return `${entitySetName}(${primaryKeyString})`;
     }
