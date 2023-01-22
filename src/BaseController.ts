@@ -104,7 +104,7 @@ export default class BaseController extends Controller {
 
     public async create<T extends Entity>({ entitySet, entity, modelName = this.baseModel }: CreateProperties<T>): Promise<T> {
         return await new Promise((resolve, reject) => {
-            this.getODataModel(modelName).create(this.getEntitySetName(entitySet), this.getSanitizedEntity(entitySet, entity), {
+            this.getODataModel(modelName).create(this.getEntitySetNameWithLeadingSlash(entitySet), this.getSanitizedEntity(entitySet, entity), {
                 success: (oData: any) => {
                     resolve(oData);
                 },
@@ -116,7 +116,7 @@ export default class BaseController extends Controller {
     }
 
     public createEntry<T extends Entity>({ entitySet, entity, modelName = this.baseModel }: CreateEntryProperties<T>): Context {        
-        return this.getODataModel(modelName).createEntry(this.getEntitySetName(entitySet), {
+        return this.getODataModel(modelName).createEntry(this.getEntitySetNameWithLeadingSlash(entitySet), {
             properties: entity ? this.getSanitizedEntity(entitySet, entity) : {}
         });
     }
@@ -141,8 +141,10 @@ export default class BaseController extends Controller {
 
     protected async update({ path, entity, entitySet, modelName = this.baseModel }: UpdateProperties): Promise<void> {
         return await new Promise((resolve, reject) => {
-            path = path ? path : this.getPath(entitySet, entity);
+            entitySet = entitySet ? entitySet : this.getEntitySetName(path || entitySet);
             entity = this.getSanitizedEntity(entitySet, entity);
+            path = path ? path : this.getPath(entitySet, entity);
+            
             this.getODataModel(modelName).update(path, entity as Object, {
                 success: () => {
                     resolve();
@@ -341,19 +343,22 @@ export default class BaseController extends Controller {
             });
     }
 
-    private getEntitySetName(entitySet: string): string {
+    private getEntitySetNameWithLeadingSlash(entitySet: string): string {
         return entitySet.startsWith('/') ? entitySet : `/${entitySet}`;
     }
 
+    private getEntitySetName(path: string): string {
+        return path.split('(')[0].replace(/^\//, '');
+    }
+
     private getPath(entitySet: string, entity: Entity): string {
-        const entitySetName = this.getEntitySetName(entitySet);
         const primaryKeys = this.getPrimaryKeys(entitySet);
         const sanitizedEntity = this.getSanitizedEntity(entitySet, entity);
 
         const primaryKeyString =
             primaryKeys.length === 1 ? `'${encodeURIComponent(sanitizedEntity[primaryKeys[0]] as string)}'` : `${primaryKeys.map(key => `${key}='${encodeURIComponent(sanitizedEntity[key] as string)}'`).join(',')}`;
 
-        return `${entitySetName}(${primaryKeyString})`;
+        return `${this.getEntitySetNameWithLeadingSlash(entitySet)}(${primaryKeyString})`;
     }
 
     private getPrimaryKeys(entitySet: string): string[] {
