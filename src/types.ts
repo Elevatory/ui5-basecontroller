@@ -63,19 +63,19 @@ export interface CallFunctionProperties {
     modelName?: string,
 }
 
-export interface UpdatePathProperties {
+export interface UpdatePathProperties<T = Entity> {
     path: string,
-    entity: Entity,
+    entity: T,
     modelName?: string
 }
 
-export interface UpdateEntityProperties {
+export interface UpdateEntityProperties<T = Entity> {
     entitySet: string,
-    entity: Entity,
+    entity: T,
     modelName?: string
 }
 
-export interface UpdateProperties extends UpdatePathProperties, UpdateEntityProperties { };
+export interface UpdateProperties<T> extends UpdatePathProperties, UpdateEntityProperties { };
 
 export interface Entity {
     [key: string]: string | number | Date | null | undefined | Entity;

@@ -35,7 +35,7 @@ export default class BaseController extends Controller {
         this.polyfillPromiseAllSettled();
     }
 
-    public getODataModel(id: string = this.baseModel): ODataModel {
+    protected getODataModel(id: string = this.baseModel): ODataModel {
         if (id === '') {
             return this.getComponent().getModel() as ODataModel;
         } else {
@@ -43,32 +43,32 @@ export default class BaseController extends Controller {
         }
     }
 
-    public getJSONModel(id: string = this.baseModel): JSONModel {
+    protected getJSONModel(id: string = this.baseModel): JSONModel {
         return this.getComponent().getModel(id) as JSONModel;
     }
 
-    public getText(id: string, ...parameters): string {
+    protected getText(id: string, ...parameters): string {
         //@ts-ignore
         return this.getComponent().getModel('i18n').getResourceBundle().getText(id, parameters);
     }
 
-    public getComponent(): Component {
+    protected getComponent(): Component {
         return this.getOwnerComponent() as Component;
     }
 
-    public getRouter(): Router {
+    protected getRouter(): Router {
         return (this.getOwnerComponent() as any).getRouter();
     }
 
-    public byId<T>(id: string): T {
+    protected byId<T>(id: string): T {
         return this.getView().byId(id) as T;
     }
 
-    public clearMessageManager(): void {
+    protected clearMessageManager(): void {
         sap.ui.getCore().getMessageManager().removeAllMessages();
     }
 
-    public async confirm(textId, titleTextId?: string): Promise<boolean> {
+    protected async confirm(textId, titleTextId?: string): Promise<boolean> {
         return new Promise((resolve, _) => {
             MessageBox.confirm(this.getText(textId), {
                 onClose: (closeAction: Action) => {
@@ -90,7 +90,7 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async showError(error): Promise<void> {
+    protected async showError(error): Promise<void> {
         return await new Promise(resolve => {
             console.error(error);
 
@@ -102,7 +102,7 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async create<T extends Entity>({ entitySet, entity, modelName = this.baseModel }: CreateProperties<T>): Promise<T> {
+    protected async create<T extends Entity>({ entitySet, entity, modelName = this.baseModel }: CreateProperties<T>): Promise<T> {
         return await new Promise((resolve, reject) => {
             this.getODataModel(modelName).create(this.getEntitySetNameWithLeadingSlash(entitySet), this.getSanitizedEntity(entitySet, entity), {
                 success: (oData: any) => {
@@ -115,13 +115,13 @@ export default class BaseController extends Controller {
         });
     }
 
-    public createEntry<T extends Entity>({ entitySet, entity, modelName = this.baseModel }: CreateEntryProperties<T>): Context {        
+    protected createEntry<T extends Entity>({ entitySet, entity, modelName = this.baseModel }: CreateEntryProperties<T>): Context {        
         return this.getODataModel(modelName).createEntry(this.getEntitySetNameWithLeadingSlash(entitySet), {
             properties: entity ? this.getSanitizedEntity(entitySet, entity) : {}
         });
     }
 
-    public async read<T>({ entitySet, entity, modelName = this.baseModel }: ReadProperties): Promise<T> {
+    protected async read<T>({ entitySet, entity, modelName = this.baseModel }: ReadProperties): Promise<T> {
         const path = this.getPath(entitySet, entity);
 
         return new Promise((resolve, reject) => {
@@ -136,10 +136,10 @@ export default class BaseController extends Controller {
         });
     }
 
-    protected async update({ path, entity, modelName = this.baseModel }: UpdatePathProperties): Promise<void>;
-    protected async update({ entitySet, entity, modelName = this.baseModel }: UpdateEntityProperties): Promise<void>;
+    protected async update<T>({ path, entity, modelName = this.baseModel }: UpdatePathProperties<T>): Promise<void>;
+    protected async update<T>({ entitySet, entity, modelName = this.baseModel }: UpdateEntityProperties<T>): Promise<void>;
 
-    protected async update({ path, entity, entitySet, modelName = this.baseModel }: UpdateProperties): Promise<void> {
+    protected async update<T>({ path, entity, entitySet, modelName = this.baseModel }: UpdateProperties<T>): Promise<void> {
         return await new Promise((resolve, reject) => {
             entitySet = entitySet ? entitySet : this.getEntitySetName(path || entitySet);
             entity = this.getSanitizedEntity(entitySet, entity);
@@ -157,10 +157,10 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async remove({ path, modelName }: RemovePathProperties): Promise<void>;
-    public async remove({ entitySet, entity, modelName }: RemoveEntityProperties): Promise<void>;
+    protected async remove({ path, modelName }: RemovePathProperties): Promise<void>;
+    protected async remove({ entitySet, entity, modelName }: RemoveEntityProperties): Promise<void>;
 
-    public async remove({ path, entitySet, entity, modelName = this.baseModel }: RemoveProperties): Promise<void> {
+    protected async remove({ path, entitySet, entity, modelName = this.baseModel }: RemoveProperties): Promise<void> {
         return new Promise((resolve, reject) => {
             const onCompleted = (event: any) => {
                 this.getODataModel(modelName).detachRequestCompleted(onCompleted);
@@ -187,7 +187,7 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async query<T>({ entitySet, filters = [], urlParameters = {}, modelName = this.baseModel }: QueryProperties): Promise<T> {
+    protected async query<T>({ entitySet, filters = [], urlParameters = {}, modelName = this.baseModel }: QueryProperties): Promise<T> {
         return await new Promise((resolve, reject) => {
             this.getODataModel(modelName).read(entitySet, {
                 success: (result: any) => {
@@ -202,7 +202,7 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async submit({ refresh = true, modelName = this.baseModel }: SubmitProperties): Promise<void> {
+    protected async submit({ refresh = true, modelName = this.baseModel }: SubmitProperties): Promise<void> {
         const defaultRefreshBehavior = this.getODataModel(modelName).getRefreshAfterChange();
         this.getODataModel(modelName).setRefreshAfterChange(refresh);
 
@@ -235,11 +235,11 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async reset(modelName = this.baseModel): Promise<void> {
+    protected async reset(modelName = this.baseModel): Promise<void> {
         await this.getODataModel(modelName).resetChanges();
     }
 
-    public async callFunction<T>({ name, urlParameters, method = 'GET', modelName }: CallFunctionProperties): Promise<T> {
+    protected async callFunction<T>({ name, urlParameters, method = 'GET', modelName }: CallFunctionProperties): Promise<T> {
         await Promise.allSettled([this.getODataModel(modelName).securityTokenAvailable()]);
 
         return await new Promise((resolve, reject) => {
@@ -256,7 +256,7 @@ export default class BaseController extends Controller {
         });
     }
 
-    public async refreshToken(modelName = this.baseModel): Promise<void> {
+    protected async refreshToken(modelName = this.baseModel): Promise<void> {
         return await new Promise((resolve, reject) => {
             this.getODataModel(modelName).refreshSecurityToken(
                 () => {
@@ -269,11 +269,11 @@ export default class BaseController extends Controller {
         });
     }
 
-    public isOnline(): boolean {
+    protected isOnline(): boolean {
         return window.navigator.onLine;
     }
 
-    public async getCurrentUser(): Promise<string> {
+    protected async getCurrentUser(): Promise<string> {
         if (!this.getJSONModel('state').getProperty('/user')) {
             const response = await fetch('/sap/bc/ui2/start_up');
             const { id } = await response.json();
@@ -283,7 +283,7 @@ export default class BaseController extends Controller {
         return this.getJSONModel('state').getProperty('/user');
     }
 
-    public focusControl(control: any, abortTime = 10000): void {
+    protected focusControl(control: any, abortTime = 10000): void {
         if (!control) {
             return;
         }
@@ -307,7 +307,7 @@ export default class BaseController extends Controller {
         }, abortTime);
     }
 
-    public getErrorMessage(error: any): string {
+    protected getErrorMessage(error: any): string {
         if (error instanceof Error) {
             const i18nText = this.getText(error.message);
 
@@ -333,7 +333,7 @@ export default class BaseController extends Controller {
         }
     }
 
-    public navigateToLaunchpad(): void {
+    protected navigateToLaunchpad(): void {
         //@ts-ignore
         sap.ushell.Container &&
             //@ts-ignore
