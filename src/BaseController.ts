@@ -144,6 +144,7 @@ export default class BaseController extends Controller {
             entitySet = entitySet ? entitySet : this.getEntitySetName(path || entitySet);
             entity = this.getSanitizedEntity(entitySet, entity);
             path = path ? path : this.getPath(entitySet, entity);
+            path = path.startsWith('/') ? path : '/' + path;
             
             this.getODataModel(modelName).update(path, entity as Object, {
                 success: () => {
