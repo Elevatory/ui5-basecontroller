@@ -62,7 +62,7 @@ export default class BaseController extends Controller {
 
     public byId<T>(id: string): T {
         return this.getView().byId(id) as T;
-    }    
+    }
 
     protected clearMessageManager(): void {
         sap.ui.getCore().getMessageManager().removeAllMessages();
@@ -115,7 +115,7 @@ export default class BaseController extends Controller {
         });
     }
 
-    protected createEntry<T extends Entity>({ entitySet, entity, modelName = this.baseModel }: CreateEntryProperties<T>): Context {        
+    protected createEntry<T extends Entity>({ entitySet, entity, modelName = this.baseModel }: CreateEntryProperties<T>): Context {
         return this.getODataModel(modelName).createEntry(this.getEntitySetNameWithLeadingSlash(entitySet), {
             properties: entity ? this.getSanitizedEntity(entitySet, entity) : {}
         });
@@ -145,7 +145,7 @@ export default class BaseController extends Controller {
             entity = this.getSanitizedEntity(entitySet, entity);
             path = path ? path : this.getPath(entitySet, entity);
             path = path.startsWith('/') ? path : '/' + path;
-            
+
             this.getODataModel(modelName).update(path, entity as Object, {
                 success: () => {
                     resolve();
@@ -157,11 +157,16 @@ export default class BaseController extends Controller {
         });
     }
 
-    protected async remove({ path, modelName }: RemovePathProperties): Promise<void>;
-    protected async remove({ entitySet, entity, modelName }: RemoveEntityProperties): Promise<void>;
+    protected async remove<T>({ path, modelName }: RemovePathProperties): Promise<void>;
+    protected async remove<T>({ entitySet, entity, modelName }: RemoveEntityProperties<T>): Promise<void>;
 
-    protected async remove({ path, entitySet, entity, modelName = this.baseModel }: RemoveProperties): Promise<void> {
+    protected async remove<T>({ path, entitySet, entity, modelName = this.baseModel }: RemoveProperties<T>): Promise<void> {
         return new Promise((resolve, reject) => {
+            entitySet = entitySet ? entitySet : this.getEntitySetName(path || entitySet);
+            entity = this.getSanitizedEntity(entitySet, entity);
+            path = path ? path : this.getPath(entitySet, entity);
+            path = path.startsWith('/') ? path : '/' + path;
+
             const onCompleted = (event: any) => {
                 this.getODataModel(modelName).detachRequestCompleted(onCompleted);
 
@@ -176,10 +181,11 @@ export default class BaseController extends Controller {
                 this.getODataModel(modelName).detachRequestFailed(onFailed);
                 reject(err);
             };
+            
             try {
                 this.getODataModel(modelName).attachRequestCompleted(onCompleted);
                 this.getODataModel(modelName).attachRequestFailed(onFailed);
-                this.getODataModel(modelName).remove(path ? path : this.getPath(entitySet, entity));
+                this.getODataModel(modelName).remove(path);
             } catch (error) {
                 this.getODataModel(modelName).detachRequestCompleted(onCompleted);
                 this.getODataModel(modelName).detachRequestFailed(onFailed);
@@ -410,7 +416,7 @@ export default class BaseController extends Controller {
         if (!properties) {
             throw new Error(`Entity type ${entityType} not found in metadata`);
         }
-        
+
         return properties;
     }
 

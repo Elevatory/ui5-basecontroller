@@ -29,21 +29,6 @@ export interface ReadProperties {
     entity: Entity,
     modelName?: string
 }
-
-
-export interface RemoveEntityProperties {
-    entitySet: string,
-    entity: Entity,
-    modelName?: string
-}
-
-export interface RemovePathProperties {
-    path: string,
-    modelName?: string
-}
-
-export interface RemoveProperties extends RemoveEntityProperties, RemovePathProperties { };
-
 export interface QueryProperties {
     entitySet: string,
     filters: Filter[],
@@ -62,6 +47,19 @@ export interface CallFunctionProperties {
     method?: string
     modelName?: string,
 }
+
+export interface RemoveEntityProperties<T = Entity> {
+    entitySet: string,
+    entity: Partial<T>,
+    modelName?: string
+}
+
+export interface RemovePathProperties {
+    path: string,
+    modelName?: string
+}
+
+export interface RemoveProperties<T> extends RemoveEntityProperties, RemovePathProperties { };
 
 export interface UpdatePathProperties<T = Entity> {
 
