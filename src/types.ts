@@ -29,9 +29,9 @@ export interface ReadProperties {
     entity: Entity,
     modelName?: string
 }
-export interface QueryProperties {
+export interface QueryProperties<T = Entity> {
     entitySet: string,
-    filters: Filter[],
+    filters: ODataFilter<T>[],
     urlParameters?: Record<string, string>
     modelName?: string,
 }
@@ -78,4 +78,9 @@ export interface UpdateProperties<T> extends UpdatePathProperties, UpdateEntityP
 
 export interface Entity {
     [key: string]: string | number | Date | null | undefined | Entity;
+}
+
+export interface ODataFilter<T = Filter> extends Filter{
+    value1: Partial<T>,
+    value2: Partial<T>,
 }
