@@ -1,6 +1,6 @@
 {
     "name": "@elevatory/ui5-basecontroller",
-    "version": "3.0.20",
+    "version": "3.0.21",
     "description": "UI5 Base Controller",
     "main": "./dist/BaseController.js",
     "scripts": {
