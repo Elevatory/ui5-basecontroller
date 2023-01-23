@@ -31,7 +31,7 @@ export interface ReadProperties {
 }
 export interface QueryProperties<T = Entity> {
     entitySet: string,
-    filters: ODataFilter<T>[],
+    filters?: ODataFilter<T>[],
     urlParameters?: Record<string, string>
     modelName?: string,
 }
