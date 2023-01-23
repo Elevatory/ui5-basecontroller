@@ -188,7 +188,7 @@ You can use it by providing a path or an entity that includes all key fields.
 await this.update({
     path: 'BusinessPartnerSet("123456")',
     entity: {
-        EmailAddress: '123@example.com'
+        EmailAddress: '123@example.com',
     }
 });
 ```
@@ -203,7 +203,7 @@ await this.update({
     entitySet: 'BusinessPartnerSet',
     entity: {
         BusinessPartnerID: '123456',
-        Address: { AddressType: '02' }
+        EmailAddress: '123@example.com',
     }
 });
 ```
