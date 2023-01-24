@@ -181,7 +181,7 @@ export default class BaseController extends Controller {
                 this.getODataModel(modelName).detachRequestFailed(onFailed);
                 reject(err);
             };
-            
+
             try {
                 this.getODataModel(modelName).attachRequestCompleted(onCompleted);
                 this.getODataModel(modelName).attachRequestFailed(onFailed);
@@ -249,16 +249,20 @@ export default class BaseController extends Controller {
         await Promise.allSettled([this.getODataModel(modelName).securityTokenAvailable()]);
 
         return await new Promise((resolve, reject) => {
-            this.getODataModel(modelName).callFunction(name, {
-                method,
-                urlParameters: urlParameters as any,
-                success: (result: any) => {
-                    resolve(result.result || result.results || result);
-                },
-                error: (error: any) => {
-                    reject(error);
-                }
-            });
+            try {
+                this.getODataModel(modelName).callFunction(name, {
+                    method,
+                    urlParameters: urlParameters as any,
+                    success: (result: any) => {
+                        resolve(result.result || result.results || result);
+                    },
+                    error: (error: any) => {
+                        reject(error);
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
         });
     }
 
