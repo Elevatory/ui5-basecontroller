@@ -216,7 +216,7 @@ export default class BaseController extends Controller {
             return;
         }
 
-        return new Promise((resolve, reject) => {
+        const promise = new Promise<void>((resolve, reject) => {
             const onCompleted = (event: any) => {
                 this.getODataModel(modelName).detachRequestCompleted(onCompleted);
                 this.getODataModel(modelName).setRefreshAfterChange(defaultRefreshBehavior);
@@ -235,10 +235,12 @@ export default class BaseController extends Controller {
                 reject(error);
             };
 
-            this.getODataModel(modelName).attachRequestCompleted(onCompleted);
-            this.getODataModel(modelName).attachRequestFailed(onFailed);
+            this.getODataModel(modelName).attachRequestCompleted(onCompleted, promise);
+            this.getODataModel(modelName).attachRequestFailed(onFailed, promise);
             this.getODataModel(modelName).submitChanges();
         });
+
+        return promise;
     }
 
     protected async reset(modelName = this.baseModel): Promise<void> {
@@ -248,22 +250,34 @@ export default class BaseController extends Controller {
     protected async callFunction<T>({ name, urlParameters, method = 'GET', modelName }: CallFunctionProperties): Promise<T> {
         await Promise.allSettled([this.getODataModel(modelName).securityTokenAvailable()]);
 
-        return await new Promise((resolve, reject) => {
-            try {
-                this.getODataModel(modelName).callFunction(name, {
-                    method,
-                    urlParameters: urlParameters as any,
-                    success: (result: any) => {
-                        resolve(result.result || result.results || result);
-                    },
-                    error: (error: any) => {
-                        reject(error);
-                    }
-                });
-            } catch (error) {
+        const promise = new Promise<T>((resolve, reject) => {
+
+            const onCompleted = (event: any) => {
+                this.getODataModel(modelName).detachRequestCompleted(onCompleted);
+
+                if (event.getParameter('success') === false) {
+                    reject();
+                } else {
+                    resolve(event);
+                    // resolve(result.result || result.results || result);
+                }
+            };
+
+            const onFailed = (error: any) => {
+                this.getODataModel(modelName).detachRequestFailed(onFailed);
                 reject(error);
-            }
+            };
+
+            this.getODataModel(modelName).attachRequestCompleted(onCompleted, promise);
+            this.getODataModel(modelName).attachRequestFailed(onFailed, promise);
+
+            this.getODataModel(modelName).callFunction(name, {
+                method,
+                urlParameters: urlParameters as any
+            });
         });
+
+        return promise;
     }
 
     protected async refreshToken(modelName = this.baseModel): Promise<void> {
