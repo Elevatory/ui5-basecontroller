@@ -167,19 +167,26 @@ export default class BaseController extends Controller {
             path = path ? path : this.getPath(entitySet, entity);
             path = path.startsWith('/') ? path : '/' + path;
 
-            this.getODataModel(modelName).attachRequestCompleted(function onCompleted(event) {
-                this.getODataModel(modelName).detachRequestCompleted(onCompleted, this);
-                if (event.getParameter('success') === false) {
-                    reject();
-                } else {
-                    resolve();
+            const onCompleted = function onCompleted(event) {
+                if (event.getParameter('url').includes(path)) {
+                    this.getODataModel(modelName).detachRequestCompleted(onCompleted, { path });
+                    if (event.getParameter('success') === false) {
+                        reject();
+                    } else {
+                        resolve();
+                    }
                 }
-            }, this);
+            }.bind(this);
 
-            this.getODataModel(modelName).attachRequestFailed(function onFailed(error) {
-                this.getODataModel(modelName).detachRequestFailed(onFailed, this);
-                reject(error);
-            }, this);
+            const onFailed = function onFailed(error) {
+                if (error.getParameter('url').includes(path)) {
+                    this.getODataModel(modelName).detachRequestFailed(onFailed, { path });
+                    reject(error);
+                }
+            }.bind(this);
+
+            this.getODataModel(modelName).attachRequestCompleted(onCompleted, { path });
+            this.getODataModel(modelName).attachRequestFailed(onFailed, { path });
 
             this.getODataModel(modelName).remove(path);
         });
@@ -192,7 +199,7 @@ export default class BaseController extends Controller {
                     resolve(result.results);
                 },
                 error: (error: any) => {
-                    reject(error);
+                    reject(this.getErrorMessage(error.getParameter('response')));
                 },
                 filters,
                 urlParameters
