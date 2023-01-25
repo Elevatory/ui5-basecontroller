@@ -163,33 +163,25 @@ export default class BaseController extends Controller {
     protected async remove<T>({ path, entitySet, entity, modelName = this.baseModel }: RemoveProperties<T>): Promise<void> {
         return new Promise((resolve, reject) => {
             entitySet = entitySet ? entitySet : this.getEntitySetName(path || entitySet);
-            entity = this.getSanitizedEntity(entitySet, entity);
+            entity = entitySet && entity ? this.getSanitizedEntity(entitySet, entity) : {};
             path = path ? path : this.getPath(entitySet, entity);
             path = path.startsWith('/') ? path : '/' + path;
 
-            const onCompleted = (event: any) => {
-                this.getODataModel(modelName).detachRequestCompleted(onCompleted);
-
+            this.getODataModel(modelName).attachRequestCompleted(function onCompleted(event) {
+                this.getODataModel(modelName).detachRequestCompleted(onCompleted, this);
                 if (event.getParameter('success') === false) {
                     reject();
                 } else {
                     resolve();
                 }
-            };
+            }, this);
 
-            const onFailed = (err: any) => {
-                this.getODataModel(modelName).detachRequestFailed(onFailed);
-                reject(err);
-            };
+            this.getODataModel(modelName).attachRequestFailed(function onFailed(error) {
+                this.getODataModel(modelName).detachRequestFailed(onFailed, this);
+                reject(error);
+            }, this);
 
-            try {
-                this.getODataModel(modelName).attachRequestCompleted(onCompleted);
-                this.getODataModel(modelName).attachRequestFailed(onFailed);
-                this.getODataModel(modelName).remove(path);
-            } catch (error) {
-                this.getODataModel(modelName).detachRequestCompleted(onCompleted);
-                this.getODataModel(modelName).detachRequestFailed(onFailed);
-            }
+            this.getODataModel(modelName).remove(path);
         });
     }
 
