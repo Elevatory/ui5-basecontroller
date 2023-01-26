@@ -194,12 +194,12 @@ export default class BaseController extends Controller {
 
     protected async query<T>({ entitySet, filters = [], urlParameters = {}, modelName = this.baseModel }: QueryProperties<T>): Promise<T> {
         return await new Promise((resolve, reject) => {
-            this.getODataModel(modelName).read(entitySet, {
+            this.getODataModel(modelName).read(entitySet.startsWith('/') ? entitySet : '/' + entitySet, {
                 success: (result: any) => {
                     resolve(result.results);
                 },
                 error: (error: any) => {
-                    reject(this.getErrorMessage(error.getParameter('response')));
+                    reject(this.getErrorMessage(error.getParameter('response') || error));
                 },
                 filters,
                 urlParameters
