@@ -1,0 +1,7 @@
+<mvc:View controllerName="Elevatory.BaseControllerSample.controller.App" xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m" id="idAppView"
+	xmlns:f="sap.f" height="100%" width="100%">
+	<Shell id="shell" appWidthLimited="false">
+		<App id="app">
+		</App>
+	</Shell>
+</mvc:View>

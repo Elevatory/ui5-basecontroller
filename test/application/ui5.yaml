@@ -1,0 +1,46 @@
+specVersion: "2.6"
+metadata:
+  name: Elevatory.BaseControllerSample
+type: application
+resources:
+  configuration:
+    paths:
+      webapp: src
+framework:
+  name: SAPUI5
+  version: "1.109.0"
+  libraries:
+    - name: sap.m
+    - name: sap.ui.core
+    - name: sap.ui.unified
+    - name: themelib_sap_fiori_3
+server:
+  customMiddleware:
+    - name: ui5-tooling-transpile-middleware
+      afterMiddleware: compression
+      configuration: 
+        debug: false
+        filePattern: .+(ts|tsx)
+        transpileTypeScript: true
+        transpileAsync: true
+        removeConsoleStatements: true
+        includes:
+          - /controller/
+    - name: ui5-tooling-modules-middleware
+      afterMiddleware: ui5-tooling-transpile-middleware
+      configuration:
+        debug: false
+        filePattern: .+(ts|tsx)
+        transpileTypeScript: true
+        transpileAsync: true
+        removeConsoleStatements: true
+        includes:
+          - /controller/
+    # - name: ui5-middleware-route-proxy
+    #   afterMiddleware: ui5-tooling-modules-middleware
+    #   configuration:
+    #     debug: false
+    #     /sap/opu/odata/:
+    #       target: https://localhost:50001
+    #       auth:
+    #         fromEnv: true
