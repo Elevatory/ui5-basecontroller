@@ -13,12 +13,12 @@
     "lib": [
       "es2020",
       "dom"
-    ],
-    "include": [
-      "./src/**"
-    ],
-    "exclude": [
-      "test"
     ]
-  }
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "test"
+  ]
 }
