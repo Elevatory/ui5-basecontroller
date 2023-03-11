@@ -13,6 +13,9 @@
     "lib": [
       "es2020",
       "dom"
+    ],
+    "exclude": [
+      "test"
     ]
   }
 }
