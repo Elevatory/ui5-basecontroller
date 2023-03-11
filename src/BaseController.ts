@@ -104,7 +104,7 @@ export default class BaseController extends Controller {
 
     protected async create<T extends Entity>({ entitySet, entity, modelName = this.baseModel }: CreateProperties<T>): Promise<T> {
         return await new Promise((resolve, reject) => {
-            this.getODataModel(modelName).create(this.getEntitySetNameWithLeadingSlash(entitySet), this.getSanitizedEntity(entitySet, entity), {
+            this.getODataModel(modelName).create(this.getEntitySetNameWithLeadingSlash(entitySet), this.getSanitizedCreateEntity(entitySet, entity), {
                 success: (oData: any) => {
                     resolve(oData);
                 },
@@ -387,6 +387,18 @@ export default class BaseController extends Controller {
             throw new Error(`Entity is missing keys: ${missingKeys.join(', ')}`);
         }
 
+        const properties = this.getEntityTypePropertyNames(this.getEntitySetType(entitySet));
+
+        return Object.keys(entity).reduce((result: Entity, property: string) => {
+            if (properties.includes(property)) {
+                result[property] = entity[property];
+            }
+
+            return result;
+        }, {});
+    }
+
+    private getSanitizedCreateEntity(entitySet: string, entity: Entity): Entity {
         const properties = this.getEntityTypePropertyNames(this.getEntitySetType(entitySet));
 
         return Object.keys(entity).reduce((result: Entity, property: string) => {
