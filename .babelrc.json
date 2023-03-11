@@ -1,6 +1,10 @@
 {
+    "compilerOptions": {
+        "declarationDir": "dist",
+        "rootDir": "src"
+    },
     "include": [
-        "src/**"
+        "src"
     ],
     "ignore": [
         "**/*.d.ts",
