@@ -380,13 +380,6 @@ export default class BaseController extends Controller {
     }
 
     private getSanitizedEntity(entitySet: string, entity: Entity): Entity {
-        const primaryKeys = this.getPrimaryKeys(entitySet);
-        const missingKeys = primaryKeys.filter(key => !entity[key]);
-
-        if (missingKeys.length > 0) {
-            throw new Error(`Entity is missing keys: ${missingKeys.join(', ')}`);
-        }
-
         const properties = this.getEntityTypePropertyNames(this.getEntitySetType(entitySet));
 
         return Object.keys(entity).reduce((result: Entity, property: string) => {
@@ -429,13 +422,20 @@ export default class BaseController extends Controller {
         const metadata = this.getODataModel().getServiceMetadata();
 
         //@ts-ignore
-        const properties = metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType)?.property.map((property: any) => property.name);
+        const properties = metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType)?.property?.map((property: any) => property.name);
+        //@ts-ignore
+        const navigationProperties =  metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType)?.navigationProperty?.map((property: any) => property.name) || [];
+        
+        const allProperties = [
+            ...properties,
+            ...navigationProperties
+        ];
 
-        if (!properties) {
+        if (!allProperties) {
             throw new Error(`Entity type ${entityType} not found in metadata`);
         }
 
-        return properties;
+        return allProperties;
     }
 
     private getEntityTypeKeyNames(entityType: string): string[] {
