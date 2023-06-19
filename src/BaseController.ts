@@ -365,10 +365,12 @@ export default class BaseController extends Controller {
 
     private getPath(entitySet: string, entity: Entity): string {
         const primaryKeys = this.getPrimaryKeys(entitySet);
-        const sanitizedEntity = this.getSanitizedEntity(entitySet, entity);
-
+        const sanitizedEntity = this.getSanitizedEntity(entitySet, entity);        
+        
         const primaryKeyString =
-            primaryKeys.length === 1 ? this.getPropertyPathName(entitySet, sanitizedEntity[primaryKeys[0]] as string) : `${primaryKeys.map(key => `${key}='${this.getPropertyPathName(entitySet, sanitizedEntity[key] as string)}'`).join(',')}`;
+            primaryKeys.length === 1 ? 
+            this.getPropertyPath(this.getPropertyType(entitySet, primaryKeys[0]), sanitizedEntity[primaryKeys[0]] as string) : 
+            `${primaryKeys.map(key => `${key}=${this.getPropertyPath(this.getPropertyType(entitySet, key), sanitizedEntity[key] as string)}`).join(',')}`;
 
         return `${this.getEntitySetNameWithLeadingSlash(entitySet)}(${primaryKeyString})`;
     }
@@ -380,9 +382,8 @@ export default class BaseController extends Controller {
         return metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType).property.find(property => property.name === property).type;
     }
 
-    private getPropertyPathName(entitySet: string, property: string): string {
-        const type = this.getPropertyType(entitySet, property);
-        return type === 'Edm.Guid' ? encodeURIComponent(`guid'${property}'`) : encodeURIComponent(`'${property}'`);
+    private getPropertyPath(type: string, value: any): string {
+        return type === 'Edm.Guid' ? encodeURIComponent(`guid'${value}'`) : encodeURIComponent(`'${value}'`);
     }
 
     private getPrimaryKeys(entitySet: string): string[] {
