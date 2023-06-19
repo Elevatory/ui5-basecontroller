@@ -375,11 +375,11 @@ export default class BaseController extends Controller {
         return `${this.getEntitySetNameWithLeadingSlash(entitySet)}(${primaryKeyString})`;
     }
 
-    private getPropertyType(entitySet: string, property: string): string {
+    private getPropertyType(entitySet: string, propertyName: string): string {
         const entityType = this.getEntitySetType(entitySet);
         const metadata = this.getODataModel().getServiceMetadata();
         //@ts-ignore
-        return metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType).property.find(property => property.name === property).type;
+        return metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType).property.find(property => property.name === propertyName).type;
     }
 
     private getPropertyPath(type: string, value: any): string {
