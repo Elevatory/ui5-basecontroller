@@ -267,7 +267,6 @@ export default class BaseController extends Controller {
         });
     }
 
-
     protected async refreshToken(modelName = this.baseModel): Promise<void> {
         return await new Promise((resolve, reject) => {
             this.getODataModel(modelName).refreshSecurityToken(
@@ -374,14 +373,15 @@ export default class BaseController extends Controller {
         return `${this.getEntitySetNameWithLeadingSlash(entitySet)}(${primaryKeyString})`;
     }
 
-    private getPropertyType(entityType: string, property: string): string {
+    private getPropertyType(entitySet: string, property: string): string {
+        const entityType = this.getEntitySetType(entitySet);
         const metadata = this.getODataModel().getServiceMetadata();
         //@ts-ignore
         return metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType).property.find(property => property.name === property).type;
     }
 
-    private getPropertyPathName(entityType: string, property: string): string {
-        const type = this.getPropertyType(entityType, property);
+    private getPropertyPathName(entitySet: string, property: string): string {
+        const type = this.getPropertyType(entitySet, property);
         return type === 'Edm.Guid' ? encodeURIComponent(`guid'${property}'`) : encodeURIComponent(`'${property}'`);
     }
 
@@ -435,12 +435,9 @@ export default class BaseController extends Controller {
         //@ts-ignore
         const properties = metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType)?.property?.map((property: any) => property.name);
         //@ts-ignore
-        const navigationProperties =  metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType)?.navigationProperty?.map((property: any) => property.name) || [];
-        
-        const allProperties = [
-            ...properties,
-            ...navigationProperties
-        ];
+        const navigationProperties = metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType)?.navigationProperty?.map((property: any) => property.name) || [];
+
+        const allProperties = [...properties, ...navigationProperties];
 
         if (!allProperties) {
             throw new Error(`Entity type ${entityType} not found in metadata`);
