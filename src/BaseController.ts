@@ -369,9 +369,20 @@ export default class BaseController extends Controller {
         const sanitizedEntity = this.getSanitizedEntity(entitySet, entity);
 
         const primaryKeyString =
-            primaryKeys.length === 1 ? `'${encodeURIComponent(sanitizedEntity[primaryKeys[0]] as string)}'` : `${primaryKeys.map(key => `${key}='${encodeURIComponent(sanitizedEntity[key] as string)}'`).join(',')}`;
+            primaryKeys.length === 1 ? this.getPropertyPathName(entitySet, sanitizedEntity[primaryKeys[0]] as string) : `${primaryKeys.map(key => `${key}='${this.getPropertyPathName(entitySet, sanitizedEntity[key] as string)}'`).join(',')}`;
 
         return `${this.getEntitySetNameWithLeadingSlash(entitySet)}(${primaryKeyString})`;
+    }
+
+    private getPropertyType(entityType: string, property: string): string {
+        const metadata = this.getODataModel().getServiceMetadata();
+        //@ts-ignore
+        return metadata.dataServices.schema[0].entityType.find((type: any) => type.name === entityType).property.find(property => property.name === property).type;
+    }
+
+    private getPropertyPathName(entityType: string, property: string): string {
+        const type = this.getPropertyType(entityType, property);
+        return type === 'Edm.Guid' ? encodeURIComponent(`guid'${property}'`) : encodeURIComponent(`'${property}'`);
     }
 
     private getPrimaryKeys(entitySet: string): string[] {
