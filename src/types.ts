@@ -77,5 +77,5 @@ export interface UpdateEntityProperties<T = Entity> {
 export interface UpdateProperties<T> extends UpdatePathProperties, UpdateEntityProperties { };
 
 export interface Entity {
-    [key: string]: string | number | Date | null | undefined | Entity;
+    [key: string]: string | number | Date | boolean | null | undefined | Entity;
 }
